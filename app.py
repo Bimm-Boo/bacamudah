@@ -17,7 +17,9 @@ logging.basicConfig(level=logging.INFO)
 
 MAX_TEXT_CHARS = 15_000
 MAX_TEXT_LABEL = f"{MAX_TEXT_CHARS:,}".replace(",", ".")  # "15.000" (format Indonesia)
-MAX_PDF_BYTES = 5 * 1024 * 1024  # 5 MB
+# Vercel membatasi isi satu permintaan sebesar 4,5 MB, jadi batas PDF dibuat sedikit di bawahnya.
+MAX_PDF_MB = 4
+MAX_PDF_BYTES = MAX_PDF_MB * 1024 * 1024
 SAMPLE_TEXT = (Path(__file__).parent / "sample" / "contoh.txt").read_text(encoding="utf-8")
 
 # Pesan ramah untuk error HTTP umum di endpoint API.
@@ -25,10 +27,13 @@ HTTP_ERROR_MESSAGES = {
     400: "Permintaan tidak valid. Muat ulang halaman, lalu coba lagi.",
     404: "Alamat tidak ditemukan.",
     405: "Cara permintaan tidak didukung.",
-    413: "Ukuran file terlalu besar. Maksimal 5 MB.",
+    413: f"Ukuran file terlalu besar. Maksimal {MAX_PDF_MB} MB.",
 }
 
-app = Flask(__name__)
+# File statis ada di public/static: di Vercel folder public/ disajikan langsung
+# oleh CDN, dan saat dijalankan di laptop Flask yang menyajikannya. Alamatnya
+# tetap /static/... di kedua tempat.
+app = Flask(__name__, static_folder="public/static")
 # Batas ukuran upload, ditambah sedikit ruang untuk data form selain file.
 app.config["MAX_CONTENT_LENGTH"] = MAX_PDF_BYTES + 64 * 1024
 
@@ -62,6 +67,7 @@ def index():
         "index.html",
         max_text_chars=MAX_TEXT_CHARS,
         max_text_label=MAX_TEXT_LABEL,
+        max_pdf_mb=MAX_PDF_MB,
         sample_text=SAMPLE_TEXT,
     )
 
@@ -86,7 +92,7 @@ def api_extract_pdf():
 
     data = uploaded.read()
     if len(data) > MAX_PDF_BYTES:
-        return error_response("Ukuran PDF maksimal 5 MB.", 413)
+        return error_response(f"Ukuran PDF maksimal {MAX_PDF_MB} MB.", 413)
     if b"%PDF" not in data[:1024]:
         return error_response("File ini bukan PDF yang valid.", 400)
 

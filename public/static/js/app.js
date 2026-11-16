@@ -3,7 +3,6 @@
   "use strict";
 
   const REQUEST_TIMEOUT_MS = 90000; // 90 detik, termasuk saat server baru "bangun"
-  const MAX_PDF_BYTES = 5 * 1024 * 1024;
   const LABELED_MODES = ["analogi", "istilah"]; // mode yang barisnya berformat "Label: isi"
 
   const textInput = document.getElementById("input-text");
@@ -24,6 +23,7 @@
   const downloadButton = document.getElementById("download-btn");
 
   const maxChars = Number(textInput.dataset.maxChars);
+  const maxPdfMb = Number(pdfInput.dataset.maxMb); // batasnya ditentukan di app.py
   let isProcessing = false;
   let lastResult = ""; // teks hasil terakhir, dipakai tombol Salin dan Unduh
   let lastMode = "";
@@ -97,7 +97,11 @@
       const response = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
       const data = await response.json().catch(function () { return {}; });
       if (!response.ok) {
-        throw new Error(data.error || "Terjadi kesalahan di server. Coba lagi sebentar lagi.");
+        // Kode 413 tanpa pesan berarti permintaan ditolak karena terlalu besar sebelum sampai ke aplikasi.
+        const fallback = response.status === 413
+          ? "Ukuran file terlalu besar. Pilih file yang lebih kecil."
+          : "Terjadi kesalahan di server. Coba lagi sebentar lagi.";
+        throw new Error(data.error || fallback);
       }
       return data;
     } catch (error) {
@@ -130,8 +134,8 @@
       pdfInput.value = "";
       return;
     }
-    if (file.size > MAX_PDF_BYTES) {
-      showInputMessage("Ukuran PDF maksimal 5 MB. Pilih file yang lebih kecil.", "error");
+    if (file.size > maxPdfMb * 1024 * 1024) {
+      showInputMessage("Ukuran PDF maksimal " + maxPdfMb + " MB. Pilih file yang lebih kecil.", "error");
       pdfInput.value = "";
       return;
     }

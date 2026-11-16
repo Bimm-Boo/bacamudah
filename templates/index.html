@@ -30,8 +30,9 @@
 
   <div class="tab-panel" role="tabpanel" id="panel-pdf" aria-labelledby="tab-pdf" hidden>
     <label class="field-label" for="pdf-file">Pilih file PDF</label>
-    <p class="hint" id="pdf-help">Maksimal 5 MB. PDF harus berisi teks, bukan hasil scan atau foto.</p>
-    <input type="file" id="pdf-file" accept="application/pdf,.pdf" aria-describedby="pdf-help">
+    <p class="hint" id="pdf-help">Maksimal {{ max_pdf_mb }} MB. PDF harus berisi teks, bukan hasil scan atau foto.</p>
+    <input type="file" id="pdf-file" accept="application/pdf,.pdf" data-max-mb="{{ max_pdf_mb }}"
+           aria-describedby="pdf-help">
   </div>
 
   <p id="input-message" class="message" role="status" aria-live="polite" hidden></p>
