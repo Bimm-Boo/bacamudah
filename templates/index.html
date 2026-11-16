@@ -72,11 +72,39 @@
 <section class="card" aria-labelledby="judul-hasil">
   <h2 id="judul-hasil" tabindex="-1"><span class="step">3</span> Hasil</h2>
 
+  {# Kontrol baca nyaring: tersembunyi sampai tts.js memastikan browser mendukungnya. #}
+  <div id="tts-controls" class="toolbar" role="group" aria-label="Baca nyaring" hidden>
+    <button type="button" id="tts-play" class="btn btn-primary tts-play" data-state="idle" disabled>
+      <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+      <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg>
+      <span id="tts-play-label">Dengarkan</span>
+    </button>
+    <button type="button" id="tts-stop" class="btn btn-secondary" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/></svg>
+      Berhenti
+    </button>
+    <div class="rate-field" role="radiogroup" aria-labelledby="tts-rate-label">
+      <span id="tts-rate-label">Kecepatan</span>
+      <label class="choice"><input type="radio" name="tts-rate" value="0.75">0,75x</label>
+      <label class="choice"><input type="radio" name="tts-rate" value="1" checked>1x</label>
+      <label class="choice"><input type="radio" name="tts-rate" value="1.25">1,25x</label>
+    </div>
+  </div>
+  <p id="tts-note" class="hint" role="status" hidden></p>
+
   <div class="toolbar">
     <button type="button" id="settings-toggle" class="btn btn-secondary"
             aria-expanded="false" aria-controls="settings-panel">
       <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/></svg>
       Atur tampilan
+    </button>
+    <button type="button" id="copy-btn" class="btn btn-secondary" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+      Salin
+    </button>
+    <button type="button" id="download-btn" class="btn btn-secondary" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
+      Unduh .txt
     </button>
   </div>
 
@@ -154,4 +182,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/tts.js') }}" defer></script>
 {% endblock %}

@@ -44,6 +44,8 @@
   --success-soft: #e6f2e7;
   --ruler-bg: rgba(255, 213, 79, 0.3);
   --ruler-border: #a8690f;
+  --highlight-bg: #ffe08a;    /* sorot kalimat saat dibacakan */
+  --highlight-text: #1f2a30;
 
   --radius: 14px;
   --font-system: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -75,6 +77,8 @@ html[data-theme="kuning"] {
   --success-soft: #e0edc8;
   --ruler-bg: rgba(127, 200, 214, 0.24);
   --ruler-border: #1d6a70;
+  --highlight-bg: #b5e2df;
+  --highlight-text: #262210;
 }
 
 html[data-theme="biru"] {
@@ -96,6 +100,8 @@ html[data-theme="biru"] {
   --success-soft: #dcefe2;
   --ruler-bg: rgba(255, 213, 79, 0.35);
   --ruler-border: #8f5f0c;
+  --highlight-bg: #ffe08a;
+  --highlight-text: #15273a;
 }
 
 html[data-theme="gelap"] {
@@ -118,6 +124,8 @@ html[data-theme="gelap"] {
   --success-soft: #24402b;
   --ruler-bg: rgba(255, 224, 130, 0.09);
   --ruler-border: #ffd54f;
+  --highlight-bg: #ffd866;
+  --highlight-text: #1b242d;
 }
 
 /* ===== Pilihan font dan jarak huruf ===== */
@@ -144,6 +152,10 @@ html[data-spacing="sangat"] {
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 body {
@@ -667,6 +679,50 @@ input[type="file"]::file-selector-button {
   color: var(--muted);
 }
 
+/* ===== Baca nyaring ===== */
+/* Ikon tombol utama berganti: putar saat diam atau dijeda, jeda saat membaca */
+.tts-play .icon-pause,
+.tts-play[data-state="playing"] .icon-play {
+  display: none;
+}
+
+.tts-play[data-state="playing"] .icon-pause {
+  display: block;
+}
+
+.rate-field {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+/* Di layar sempit, label "Kecepatan" di baris sendiri agar ketiga pilihan muat sejajar */
+#tts-rate-label {
+  flex-basis: 100%;
+}
+
+.rate-field .choice {
+  min-width: 68px;
+}
+
+#tts-note {
+  margin: -6px 0 16px;
+}
+
+/* Kalimat yang sedang dibacakan: warna latar + garis bawah (tidak hanya mengandalkan warna) */
+.sentence.is-speaking {
+  padding: 0.1em 0;
+  border-bottom: 2px solid var(--primary);
+  border-radius: 4px;
+  background: var(--highlight-bg);
+  color: var(--highlight-text);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 /* ===== Penggaris baca: pita sorot yang mengikuti kursor atau sentuhan ===== */
 .reading-ruler {
   display: none;
@@ -769,6 +825,15 @@ html[data-ruler="on"] .reading-ruler {
 
   .settings-panel {
     padding: 20px;
+  }
+
+  /* Pilihan kecepatan sebaris dengan tombol Dengarkan dan Berhenti */
+  .rate-field {
+    flex: 0 1 auto;
+  }
+
+  #tts-rate-label {
+    flex-basis: auto;
   }
 
   /* Dua penggeser (ukuran dan jarak baris) berdampingan */

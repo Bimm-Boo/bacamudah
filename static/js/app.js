@@ -1,4 +1,4 @@
-// BacaMudah: input materi, unggah PDF, dan proses AI.
+// BacaMudah: input materi, unggah PDF, proses AI, serta salin dan unduh hasil.
 (function () {
   "use strict";
 
@@ -20,9 +20,13 @@
   const resultErrorText = document.getElementById("result-error-text");
   const retryButton = document.getElementById("retry-btn");
   const resultOutput = document.getElementById("result-output");
+  const copyButton = document.getElementById("copy-btn");
+  const downloadButton = document.getElementById("download-btn");
 
   const maxChars = Number(textInput.dataset.maxChars);
   let isProcessing = false;
+  let lastResult = ""; // teks hasil terakhir, dipakai tombol Salin dan Unduh
+  let lastMode = "";
 
   function formatNumber(value) {
     return value.toLocaleString("id-ID");
@@ -157,16 +161,29 @@
   }
 
   // ----- Menampilkan hasil AI dengan aman (tanpa innerHTML) -----
+  // Pecah satu baris menjadi kalimat: berakhir di . ! ? yang diikuti spasi.
+  // Titik di dalam angka (misalnya 15.000) tidak memotong kalimat.
+  function splitSentences(line) {
+    return line.match(/\S.*?(?:[.!?]+["”’')\]]*(?=\s|$)|$)/g) || [line];
+  }
+
+  // Tiap kalimat dibungkus <span class="sentence"> agar bisa disorot saat dibacakan.
   function createLine(tagName, line, useLabel) {
     const element = document.createElement(tagName);
-    const match = useLabel ? line.match(/^([^:]{1,60}):\s+(.+)$/) : null;
-    if (match) {
-      const label = document.createElement("strong");
-      label.textContent = match[1] + ":";
-      element.append(label, " " + match[2]);
-    } else {
-      element.textContent = line;
-    }
+    splitSentences(line).forEach(function (sentence, index) {
+      const span = document.createElement("span");
+      span.className = "sentence";
+      const match = useLabel && index === 0 ? sentence.match(/^([^:]{1,60}):\s+(.+)$/) : null;
+      if (match) {
+        const label = document.createElement("strong");
+        label.textContent = match[1] + ":";
+        span.append(label, " " + match[2]);
+      } else {
+        span.textContent = sentence;
+      }
+      if (index > 0) element.append(" ");
+      element.append(span);
+    });
     return element;
   }
 
@@ -221,6 +238,7 @@
     if (!text || isProcessing) return;
 
     setProcessing(true);
+    document.dispatchEvent(new CustomEvent("bacamudah:processing")); // tts.js berhenti membaca
     resultError.hidden = true;
     showLoading();
     resultHeading.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -232,6 +250,11 @@
         body: JSON.stringify({ text: text, mode: mode }),
       });
       renderResult(data.result, mode);
+      lastResult = data.result;
+      lastMode = mode;
+      copyButton.disabled = false;
+      downloadButton.disabled = false;
+      document.dispatchEvent(new CustomEvent("bacamudah:result")); // tts.js menyiapkan kalimat baru
       resultStatus.textContent = "Hasil sudah siap.";
       resultHeading.focus({ preventScroll: true });
     } catch (error) {
@@ -242,6 +265,30 @@
     } finally {
       setProcessing(false);
     }
+  }
+
+  // ----- Salin dan unduh hasil -----
+  async function copyResult() {
+    try {
+      await navigator.clipboard.writeText(lastResult);
+      resultStatus.textContent = "Hasil sudah disalin.";
+    } catch (error) {
+      resultStatus.textContent = "Tidak bisa menyalin otomatis. Blok teks hasilnya, lalu salin secara manual.";
+    }
+  }
+
+  function downloadResult() {
+    // Baris baru gaya Windows (CRLF) agar rapi juga saat dibuka di Notepad.
+    const content = lastResult.replace(/\n/g, "\r\n") + "\r\n";
+    const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "bacamudah-" + lastMode + ".txt";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    resultStatus.textContent = "File .txt sedang diunduh.";
   }
 
   // ----- Pasang semua event -----
@@ -257,6 +304,8 @@
   });
   processButton.addEventListener("click", processText);
   retryButton.addEventListener("click", processText);
+  copyButton.addEventListener("click", copyResult);
+  downloadButton.addEventListener("click", downloadResult);
 
   updateInputState();
 })();
