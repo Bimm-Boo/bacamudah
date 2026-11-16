@@ -806,6 +806,118 @@ html[data-ruler="on"] .reading-ruler {
   margin-bottom: 0.5em;
 }
 
+/* ===== Kuis ===== */
+/* Ukuran di sini memakai "em" agar ikut pengaturan ukuran huruf pembaca. */
+.quiz-progress {
+  margin: 0 0 0.3em;
+  color: var(--muted);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.quiz-question {
+  margin: 0 0 0.9em;
+  font-weight: 700;
+}
+
+.quiz-options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* kolom boleh menyempit, tidak melebar mengikuti kata panjang */
+  gap: 10px;
+  margin-bottom: 1em;
+}
+
+.quiz-option {
+  display: flex;
+  flex-wrap: wrap; /* di huruf besar, teks turun ke bawah lingkaran huruf */
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 14px;
+  border: 2px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  letter-spacing: inherit; /* tombol tidak mewarisi jarak huruf secara otomatis */
+  word-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.quiz-option:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.quiz-letter {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+/* Teks pilihan berada di samping huruf selama masih muat kira-kira 12 karakter.
+   Jika tidak, teks turun ke bawah huruf dan memakai lebar penuh. */
+.quiz-text {
+  flex: 1 1 12ch;
+  min-width: 0;
+}
+
+/* Setelah dijawab: pilihan terkunci, yang benar hijau, pilihan yang salah merah.
+   Tanda centang/silang ikut ditampilkan agar tidak hanya mengandalkan warna. */
+.quiz-option:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.quiz-option.is-correct {
+  border-color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.quiz-option.is-wrong {
+  border-color: var(--error);
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.quiz-mark {
+  font-weight: 700;
+}
+
+.quiz-verdict {
+  margin: 0 0 0.3em;
+  font-weight: 700;
+}
+
+.quiz-verdict.is-correct {
+  color: var(--success);
+}
+
+.quiz-verdict.is-wrong {
+  color: var(--error);
+}
+
+.quiz-explanation {
+  margin: 0 0 1em;
+}
+
+.quiz-score {
+  margin: 0 0 0.3em;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
 /* Kurangi animasi bagi yang mengaktifkan "kurangi gerakan" di perangkatnya */
 @media (prefers-reduced-motion: reduce) {
   .spinner {

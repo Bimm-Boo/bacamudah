@@ -216,13 +216,20 @@
   }
 
   // ----- Proses AI -----
-  function showLoading() {
+  // Tampilkan ikon berputar dan pesan tunggu di sebuah area status.
+  function showLoading(container, message) {
     const spinner = document.createElement("span");
     spinner.className = "spinner";
     spinner.setAttribute("aria-hidden", "true");
     const label = document.createElement("span");
-    label.textContent = "Sedang memproses materi. Biasanya kurang dari 15 detik.";
-    resultStatus.replaceChildren(spinner, label);
+    label.textContent = message;
+    container.replaceChildren(spinner, label);
+  }
+
+  // Gulir ke sebuah elemen; tanpa animasi jika pengguna memilih "kurangi gerakan".
+  function scrollToElement(element) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    element.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   }
 
   function setProcessing(active) {
@@ -240,8 +247,8 @@
     setProcessing(true);
     document.dispatchEvent(new CustomEvent("bacamudah:processing")); // tts.js berhenti membaca
     resultError.hidden = true;
-    showLoading();
-    resultHeading.scrollIntoView({ behavior: "smooth", block: "start" });
+    showLoading(resultStatus, "Sedang memproses materi. Biasanya kurang dari 15 detik.");
+    scrollToElement(resultHeading);
 
     try {
       const data = await requestJson("/api/process", {
@@ -254,7 +261,8 @@
       lastMode = mode;
       copyButton.disabled = false;
       downloadButton.disabled = false;
-      document.dispatchEvent(new CustomEvent("bacamudah:result")); // tts.js menyiapkan kalimat baru
+      // Kabari tts.js (menyiapkan kalimat baru) dan quiz.js (menyimpan materi untuk kuis).
+      document.dispatchEvent(new CustomEvent("bacamudah:result", { detail: { sourceText: text } }));
       resultStatus.textContent = "Hasil sudah siap.";
       resultHeading.focus({ preventScroll: true });
     } catch (error) {
@@ -306,6 +314,13 @@
   retryButton.addEventListener("click", processText);
   copyButton.addEventListener("click", copyResult);
   downloadButton.addEventListener("click", downloadResult);
+
+  // Fungsi yang juga dipakai file lain (quiz.js).
+  window.BacaMudah = {
+    requestJson: requestJson,
+    showLoading: showLoading,
+    scrollToElement: scrollToElement,
+  };
 
   updateInputState();
 })();
