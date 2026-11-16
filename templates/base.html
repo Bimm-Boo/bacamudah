@@ -7,6 +7,8 @@
   <meta name="description" content="BacaMudah membuat materi belajar lebih mudah dibaca, didengar, dan dipahami, terutama bagi penyandang disleksia.">
   <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {# Dimuat di head (tanpa defer) agar tema dan font tersimpan langsung dipakai, tanpa berkedip. #}
+  <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 </head>
 <body>
   <a class="skip-link" href="#konten">Langsung ke konten utama</a>
@@ -32,6 +34,8 @@
       <p>BacaMudah · Karya untuk IT RUSH 2026</p>
     </div>
   </footer>
+
+  <div class="reading-ruler" aria-hidden="true"></div>
 
   {% block scripts %}{% endblock %}
 </body>
