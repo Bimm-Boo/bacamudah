@@ -1,0 +1,12 @@
+# Rahasia: file berisi API key, JANGAN di-commit
+.env
+
+# Virtual environment Python
+.venv/
+
+# File sementara Python
+__pycache__/
+*.pyc
+
+# File sistem macOS
+.DS_Store

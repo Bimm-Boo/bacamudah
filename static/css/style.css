@@ -1,0 +1,455 @@
+/* ===== Warna dan ukuran dasar ===== */
+:root {
+  --bg: #faf6ec;            /* krem muda */
+  --surface: #fffdf8;       /* kartu, tidak putih murni */
+  --text: #1f2a30;          /* gelap lembut, tidak hitam murni */
+  --muted: #4f5d63;
+  --primary: #1d6a70;       /* biru-hijau tenang */
+  --primary-dark: #15545a;
+  --primary-soft: #e3f1ef;
+  --border: #e3dccd;        /* garis hiasan */
+  --border-strong: #7a817c; /* garis kolom input (kontras >= 3:1) */
+  --focus: #c2410c;
+  --error: #a3271f;
+  --error-soft: #fbeae7;
+  --success: #2e6b3a;
+  --success-soft: #e6f2e7;
+  --radius: 14px;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+h1,
+h2 {
+  line-height: 1.25;
+}
+
+a {
+  color: var(--primary);
+}
+
+/* Fokus keyboard harus selalu terlihat jelas */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.container {
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  padding: 10px 16px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ===== Header dan footer ===== */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.nav-link {
+  display: inline-block;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.site-footer {
+  margin-top: 40px;
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+/* ===== Hero ===== */
+.hero {
+  padding: 28px 0 8px;
+}
+
+.hero h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ===== Kartu ===== */
+.card {
+  margin-top: 20px;
+  padding: 20px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+.step {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-size: 1rem;
+}
+
+.hint {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+/* ===== Tab Teks / PDF ===== */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  flex: 1;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 2px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ===== Input ===== */
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  padding: 12px;
+  border: 2px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+textarea:focus-visible {
+  outline-offset: 1px;
+}
+
+.input-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.char-count {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.char-count.over-limit {
+  color: var(--error);
+  font-weight: 700;
+}
+
+input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== Tombol ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  border-color: var(--primary);
+  background: var(--surface);
+  color: var(--primary-dark);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btn-large {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 16px;
+  font-size: 1.125rem;
+}
+
+/* ===== Pilihan mode ===== */
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mode-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 12px;
+  border: 2px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+/* Radio asli disembunyikan secara visual, tapi tetap bisa dipakai keyboard */
+.mode-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.mode-option:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.mode-option:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.mode-icon {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-icon circle {
+  fill: var(--primary);
+  stroke: none;
+}
+
+.mode-label {
+  font-weight: 700;
+}
+
+.mode-desc {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* ===== Pesan ===== */
+.message {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+}
+
+.message-success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.message-error {
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.message-error p {
+  margin: 0 0 10px;
+}
+
+/* ===== Hasil ===== */
+.result-status:empty {
+  display: none;
+}
+
+.result-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--muted);
+}
+
+.spinner {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--primary-soft);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.result-output {
+  max-width: 68ch;
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+.result-output .placeholder {
+  margin: 0;
+  color: var(--muted);
+}
+
+.result-block {
+  margin-bottom: 1.25em;
+}
+
+.result-block p {
+  margin: 0 0 0.35em;
+}
+
+.result-block ul {
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.result-block li {
+  margin-bottom: 0.5em;
+}
+
+/* Kurangi animasi bagi yang mengaktifkan "kurangi gerakan" di perangkatnya */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+}
+
+/* ===== Layar lebih lebar ===== */
+@media (min-width: 640px) {
+  .hero h1 {
+    font-size: 2.125rem;
+  }
+
+  .card {
+    padding: 28px;
+  }
+}

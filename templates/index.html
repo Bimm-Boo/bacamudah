@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <h1>Materi belajar jadi lebih mudah dibaca.</h1>
+  <p>Tempel teks atau unggah PDF, lalu pilih cara penyajian yang paling membantu kamu.</p>
+</section>
+
+<section class="card" aria-labelledby="judul-input">
+  <h2 id="judul-input"><span class="step">1</span> Masukkan materi</h2>
+
+  <div class="tabs" role="tablist" aria-label="Cara memasukkan materi">
+    <button type="button" class="tab" role="tab" id="tab-teks"
+            aria-selected="true" aria-controls="panel-teks">Tempel teks</button>
+    <button type="button" class="tab" role="tab" id="tab-pdf"
+            aria-selected="false" aria-controls="panel-pdf" tabindex="-1">Unggah PDF</button>
+  </div>
+
+  <div class="tab-panel" role="tabpanel" id="panel-teks" aria-labelledby="tab-teks">
+    <label class="field-label" for="input-text">Teks materi</label>
+    <p class="hint" id="input-help">Tempel teks dari buku, modul, atau artikel. Maksimal {{ max_text_label }} karakter.</p>
+    <textarea id="input-text" rows="10" data-max-chars="{{ max_text_chars }}"
+              aria-describedby="input-help char-count" spellcheck="false"></textarea>
+    <div class="input-meta">
+      <span id="char-count" class="char-count">0 / {{ max_text_label }} karakter</span>
+      <button type="button" id="sample-btn" class="btn btn-secondary">Coba contoh materi</button>
+    </div>
+    <p id="limit-warning" class="message message-error" role="alert" hidden></p>
+  </div>
+
+  <div class="tab-panel" role="tabpanel" id="panel-pdf" aria-labelledby="tab-pdf" hidden>
+    <label class="field-label" for="pdf-file">Pilih file PDF</label>
+    <p class="hint" id="pdf-help">Maksimal 5 MB. PDF harus berisi teks, bukan hasil scan atau foto.</p>
+    <input type="file" id="pdf-file" accept="application/pdf,.pdf" aria-describedby="pdf-help">
+  </div>
+
+  <p id="input-message" class="message" role="status" aria-live="polite" hidden></p>
+</section>
+
+<section class="card" aria-labelledby="judul-mode">
+  <h2 id="judul-mode"><span class="step">2</span> Pilih cara penyajian</h2>
+  <div class="mode-grid" role="radiogroup" aria-labelledby="judul-mode">
+    <label class="mode-option">
+      <input type="radio" name="mode" value="sederhana" checked>
+      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg>
+      <span class="mode-label">Teks Sederhana</span>
+      <span class="mode-desc">Kalimat pendek dan kata sehari-hari</span>
+    </label>
+    <label class="mode-option">
+      <input type="radio" name="mode" value="poin">
+      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>
+      <span class="mode-label">Poin-Poin</span>
+      <span class="mode-desc">Ringkasan 5–10 poin utama</span>
+    </label>
+    <label class="mode-option">
+      <input type="radio" name="mode" value="analogi">
+      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>
+      <span class="mode-label">Analogi</span>
+      <span class="mode-desc">Perumpamaan dari kehidupan sehari-hari</span>
+    </label>
+    <label class="mode-option">
+      <input type="radio" name="mode" value="istilah">
+      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 8h6M9 11.5h4"/></svg>
+      <span class="mode-label">Istilah Sulit</span>
+      <span class="mode-desc">Daftar kata sulit dan artinya</span>
+    </label>
+  </div>
+
+  <button type="button" id="process-btn" class="btn btn-primary btn-large" disabled>Proses</button>
+</section>
+
+<section class="card" aria-labelledby="judul-hasil">
+  <h2 id="judul-hasil" tabindex="-1"><span class="step">3</span> Hasil</h2>
+
+  <div id="result-status" class="result-status" role="status" aria-live="polite"></div>
+
+  <div id="result-error" class="message message-error" hidden>
+    <p id="result-error-text" role="alert"></p>
+    <button type="button" id="retry-btn" class="btn btn-secondary">Coba lagi</button>
+  </div>
+
+  <div id="result-output" class="result-output">
+    <p class="placeholder">Hasil akan muncul di sini setelah kamu menekan tombol Proses.</p>
+  </div>
+</section>
+
+<script id="sample-data" type="application/json">{{ sample_text|tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+{% endblock %}

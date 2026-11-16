@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}BacaMudah{% endblock %}</title>
+  <meta name="description" content="BacaMudah membuat materi belajar lebih mudah dibaca, didengar, dan dipahami, terutama bagi penyandang disleksia.">
+  <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#konten">Langsung ke konten utama</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="{{ url_for('index') }}">
+        <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="36" height="36">
+        <span>BacaMudah</span>
+      </a>
+      <nav aria-label="Menu utama">
+        <a class="nav-link" href="{{ url_for('tentang') }}">Tentang</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="konten" class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>BacaMudah · Karya untuk IT RUSH 2026</p>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

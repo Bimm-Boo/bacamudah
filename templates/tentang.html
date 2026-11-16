@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Tentang · BacaMudah{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Tentang BacaMudah</h1>
+  <p>BacaMudah membuat materi belajar apa pun lebih mudah dibaca, didengar, dan dipahami, terutama bagi penyandang disleksia.</p>
+</section>
+
+<section class="card">
+  <h2>Privasi</h2>
+  <p>Materi yang kamu masukkan hanya diproses lalu dibuang. BacaMudah tidak menyimpan materi kamu di server.</p>
+  <p><a href="{{ url_for('index') }}">Kembali ke halaman utama</a></p>
+</section>
+{% endblock %}

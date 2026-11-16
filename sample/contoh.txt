@@ -1,0 +1,11 @@
+Siklus Hidrologi
+
+Siklus hidrologi merupakan rangkaian proses sirkulasi air yang berlangsung secara kontinu dari atmosfer ke permukaan bumi dan kembali lagi ke atmosfer melalui serangkaian tahapan yang saling berkaitan, yaitu evaporasi, transpirasi, kondensasi, presipitasi, infiltrasi, dan limpasan permukaan. Energi utama yang menggerakkan siklus ini berasal dari radiasi matahari, sedangkan gaya gravitasi berperan dalam mengalirkan air kembali ke tempat yang lebih rendah.
+
+Tahap awal siklus diawali oleh evaporasi, yakni perubahan wujud air dari fase cair menjadi uap air akibat pemanasan pada permukaan laut, danau, sungai, maupun tanah yang lembap. Bersamaan dengan itu, tumbuhan melepaskan uap air ke udara melalui stomata pada daun dalam proses yang dinamakan transpirasi. Gabungan keduanya sering disebut evapotranspirasi dan menjadi penyumbang utama kelembapan di atmosfer.
+
+Uap air yang naik ke lapisan atmosfer yang lebih tinggi akan mengalami penurunan suhu sehingga terjadi kondensasi, yaitu perubahan uap air menjadi titik-titik air berukuran sangat kecil yang kemudian berkumpul membentuk awan. Apabila titik-titik air tersebut terus bertambah besar hingga tidak lagi dapat ditopang oleh udara, terjadilah presipitasi, yaitu jatuhnya air ke permukaan bumi dalam bentuk hujan, salju, atau hujan es, bergantung pada kondisi suhu di atmosfer.
+
+Air hujan yang mencapai permukaan tanah sebagian akan meresap ke dalam tanah melalui proses infiltrasi. Air yang meresap lebih dalam akan tersimpan di lapisan batuan berpori yang disebut akuifer dan menjadi cadangan air tanah yang dimanfaatkan masyarakat melalui sumur. Sementara itu, air yang tidak terserap akan mengalir di atas permukaan tanah sebagai limpasan permukaan menuju sungai, danau, dan pada akhirnya kembali ke laut.
+
+Keseimbangan siklus hidrologi sangat dipengaruhi oleh tutupan lahan. Alih fungsi hutan menjadi permukiman atau lahan terbuka dapat menurunkan kapasitas infiltrasi tanah, sehingga volume limpasan permukaan meningkat dan risiko banjir pada musim hujan menjadi lebih tinggi. Sebaliknya, pada musim kemarau, berkurangnya cadangan air tanah dapat memicu kekeringan. Oleh karena itu, pelestarian hutan dan daerah resapan air merupakan upaya penting untuk menjaga ketersediaan air bersih secara berkelanjutan.

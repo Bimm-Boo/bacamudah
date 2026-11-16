@@ -1,0 +1,262 @@
+// BacaMudah: input materi, unggah PDF, dan proses AI.
+(function () {
+  "use strict";
+
+  const REQUEST_TIMEOUT_MS = 90000; // 90 detik, termasuk saat server baru "bangun"
+  const MAX_PDF_BYTES = 5 * 1024 * 1024;
+  const LABELED_MODES = ["analogi", "istilah"]; // mode yang barisnya berformat "Label: isi"
+
+  const textInput = document.getElementById("input-text");
+  const charCount = document.getElementById("char-count");
+  const limitWarning = document.getElementById("limit-warning");
+  const inputMessage = document.getElementById("input-message");
+  const sampleButton = document.getElementById("sample-btn");
+  const pdfInput = document.getElementById("pdf-file");
+  const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+  const processButton = document.getElementById("process-btn");
+  const resultHeading = document.getElementById("judul-hasil");
+  const resultStatus = document.getElementById("result-status");
+  const resultError = document.getElementById("result-error");
+  const resultErrorText = document.getElementById("result-error-text");
+  const retryButton = document.getElementById("retry-btn");
+  const resultOutput = document.getElementById("result-output");
+
+  const maxChars = Number(textInput.dataset.maxChars);
+  let isProcessing = false;
+
+  function formatNumber(value) {
+    return value.toLocaleString("id-ID");
+  }
+
+  // ----- Pesan di bawah kartu input -----
+  function showInputMessage(text, type) {
+    inputMessage.textContent = text;
+    inputMessage.className = "message" + (type ? " message-" + type : "");
+    inputMessage.hidden = false;
+  }
+
+  function hideInputMessage() {
+    inputMessage.hidden = true;
+    inputMessage.textContent = "";
+  }
+
+  // ----- Penghitung karakter dan status tombol Proses -----
+  function updateInputState() {
+    const length = textInput.value.length;
+    const isOverLimit = length > maxChars;
+
+    charCount.textContent = formatNumber(length) + " / " + formatNumber(maxChars) + " karakter";
+    charCount.classList.toggle("over-limit", isOverLimit);
+
+    limitWarning.hidden = !isOverLimit;
+    limitWarning.textContent = isOverLimit
+      ? "Teks terlalu panjang. Hapus " + formatNumber(length - maxChars) + " karakter agar bisa diproses."
+      : "";
+
+    processButton.disabled = isProcessing || isOverLimit || textInput.value.trim() === "";
+  }
+
+  // ----- Tab Teks / PDF (bisa dengan klik atau tombol panah) -----
+  function selectTab(selectedTab) {
+    tabs.forEach(function (tab) {
+      const isSelected = tab === selectedTab;
+      tab.setAttribute("aria-selected", String(isSelected));
+      tab.tabIndex = isSelected ? 0 : -1;
+      document.getElementById(tab.getAttribute("aria-controls")).hidden = !isSelected;
+    });
+  }
+
+  function handleTabKeydown(event) {
+    const index = tabs.indexOf(event.currentTarget);
+    let nextIndex = null;
+    if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+    if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    selectTab(tabs[nextIndex]);
+    tabs[nextIndex].focus();
+  }
+
+  function showTextTab() {
+    selectTab(tabs[0]);
+    textInput.focus();
+  }
+
+  // ----- Permintaan ke server dengan batas waktu dan pesan ramah -----
+  async function requestJson(url, options) {
+    const controller = new AbortController();
+    const timer = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+      const data = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        throw new Error(data.error || "Terjadi kesalahan di server. Coba lagi sebentar lagi.");
+      }
+      return data;
+    } catch (error) {
+      if (error.name === "AbortError") {
+        throw new Error("Proses terlalu lama. Coba lagi, atau persingkat materinya.");
+      }
+      if (error instanceof TypeError) {
+        throw new Error("Tidak bisa terhubung ke server. Periksa koneksi internet kamu.");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // ----- Contoh materi -----
+  function fillSample() {
+    textInput.value = JSON.parse(document.getElementById("sample-data").textContent);
+    updateInputState();
+    showInputMessage("Contoh materi sudah diisi. Pilih cara penyajian, lalu tekan Proses.", "success");
+  }
+
+  // ----- Unggah PDF -----
+  async function handlePdfChange() {
+    const file = pdfInput.files[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      showInputMessage("File harus berformat PDF.", "error");
+      pdfInput.value = "";
+      return;
+    }
+    if (file.size > MAX_PDF_BYTES) {
+      showInputMessage("Ukuran PDF maksimal 5 MB. Pilih file yang lebih kecil.", "error");
+      pdfInput.value = "";
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    pdfInput.disabled = true;
+    showInputMessage("Sedang membaca PDF…");
+
+    try {
+      const data = await requestJson("/api/extract-pdf", { method: "POST", body: formData });
+      textInput.value = data.text;
+      updateInputState();
+      showTextTab();
+      showInputMessage(
+        data.truncated
+          ? "PDF terlalu panjang, jadi hanya " + formatNumber(maxChars) + " karakter pertama yang diambil. Cek teksnya sebelum diproses."
+          : "Teks dari PDF berhasil diambil. Cek dan ubah bila perlu, lalu tekan Proses.",
+        "success"
+      );
+    } catch (error) {
+      showInputMessage(error.message, "error");
+    } finally {
+      pdfInput.disabled = false;
+      pdfInput.value = "";
+    }
+  }
+
+  // ----- Menampilkan hasil AI dengan aman (tanpa innerHTML) -----
+  function createLine(tagName, line, useLabel) {
+    const element = document.createElement(tagName);
+    const match = useLabel ? line.match(/^([^:]{1,60}):\s+(.+)$/) : null;
+    if (match) {
+      const label = document.createElement("strong");
+      label.textContent = match[1] + ":";
+      element.append(label, " " + match[2]);
+    } else {
+      element.textContent = line;
+    }
+    return element;
+  }
+
+  function renderResult(text, mode) {
+    const useLabel = LABELED_MODES.includes(mode);
+    resultOutput.replaceChildren();
+
+    text.split(/\n\s*\n/).forEach(function (blockText) {
+      const lines = blockText.split("\n").map(function (line) { return line.trim(); }).filter(Boolean);
+      if (lines.length === 0) return;
+
+      const block = document.createElement("div");
+      block.className = "result-block";
+      let list = null;
+
+      lines.forEach(function (line) {
+        if (line.startsWith("- ")) {
+          if (!list) {
+            list = document.createElement("ul");
+            block.append(list);
+          }
+          list.append(createLine("li", line.slice(2), useLabel));
+        } else {
+          list = null;
+          block.append(createLine("p", line, useLabel));
+        }
+      });
+      resultOutput.append(block);
+    });
+  }
+
+  // ----- Proses AI -----
+  function showLoading() {
+    const spinner = document.createElement("span");
+    spinner.className = "spinner";
+    spinner.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.textContent = "Sedang memproses materi. Biasanya kurang dari 15 detik.";
+    resultStatus.replaceChildren(spinner, label);
+  }
+
+  function setProcessing(active) {
+    isProcessing = active;
+    processButton.textContent = active ? "Sedang memproses…" : "Proses";
+    resultOutput.setAttribute("aria-busy", String(active));
+    updateInputState();
+  }
+
+  async function processText() {
+    const text = textInput.value.trim();
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    if (!text || isProcessing) return;
+
+    setProcessing(true);
+    resultError.hidden = true;
+    showLoading();
+    resultHeading.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    try {
+      const data = await requestJson("/api/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text, mode: mode }),
+      });
+      renderResult(data.result, mode);
+      resultStatus.textContent = "Hasil sudah siap.";
+      resultHeading.focus({ preventScroll: true });
+    } catch (error) {
+      resultStatus.textContent = "";
+      resultErrorText.textContent = error.message;
+      resultError.hidden = false;
+      retryButton.focus();
+    } finally {
+      setProcessing(false);
+    }
+  }
+
+  // ----- Pasang semua event -----
+  textInput.addEventListener("input", function () {
+    hideInputMessage();
+    updateInputState();
+  });
+  sampleButton.addEventListener("click", fillSample);
+  pdfInput.addEventListener("change", handlePdfChange);
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () { selectTab(tab); });
+    tab.addEventListener("keydown", handleTabKeydown);
+  });
+  processButton.addEventListener("click", processText);
+  retryButton.addEventListener("click", processText);
+
+  updateInputState();
+})();
