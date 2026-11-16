@@ -1,16 +1,47 @@
-"""Pemanggil Gemini API untuk mengolah materi."""
+"""Pemanggil Gemini API: mengolah materi (4 mode) dan membuat kuis."""
 
+import json
 import logging
 import os
+import random
 import re
 
 from google import genai
 from google.genai import errors, types
 
-from prompts import SYSTEM_INSTRUCTION, build_prompt
+from prompts import SYSTEM_INSTRUCTION, build_prompt, build_quiz_prompt
 
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
 REQUEST_TIMEOUT_MS = 60_000  # batas tunggu jawaban AI (60 detik)
+
+QUIZ_MIN_QUESTIONS = 3
+QUIZ_MAX_QUESTIONS = 5
+QUIZ_OPTION_COUNT = 4
+QUIZ_ATTEMPTS = 2  # jika jawaban AI tidak valid, coba ulang sekali
+
+# Bentuk JSON kuis yang diminta dari Gemini (sama dengan skema di CLAUDE.md).
+QUIZ_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "questions": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "question": {"type": "STRING"},
+                    "options": {"type": "ARRAY", "items": {"type": "STRING"}},
+                    "answer_index": {"type": "INTEGER"},
+                    "explanation": {"type": "STRING"},
+                },
+                "required": ["question", "options", "answer_index", "explanation"],
+            },
+        }
+    },
+    "required": ["questions"],
+}
+
+# Awalan huruf pada pilihan jawaban, misalnya "A. " atau "b) ".
+OPTION_PREFIX = re.compile(r"^\(?([A-Da-d])[.)]\s+")
 
 logger = logging.getLogger(__name__)
 _client = None
@@ -25,6 +56,7 @@ class AIError(Exception):
         self.status_code = status_code
 
 
+# ----- Memanggil Gemini -----
 def _get_client():
     """Buat client Gemini sekali saja, lalu pakai ulang."""
     global _client
@@ -61,29 +93,18 @@ def _friendly_api_error(error):
     return AIError("AI tidak bisa memproses permintaan ini. Coba lagi sebentar lagi.", 502)
 
 
-def clean_output(text):
-    """Rapikan jawaban AI: buang simbol markdown dan samakan tanda poin."""
-    lines = []
-    for line in text.strip().splitlines():
-        line = line.replace("**", "").replace("__", "")
-        line = re.sub(r"^\s*#+\s*", "", line)  # judul markdown "# ..."
-        line = re.sub(r"^\s*[*•]\s+", "- ", line)  # poin "*" atau "•" menjadi "- "
-        lines.append(line.rstrip())
-    cleaned = "\n".join(lines)
-    return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
-
-
-def process_text(text, mode):
-    """Kirim materi ke Gemini sesuai mode, lalu kembalikan hasilnya sebagai teks."""
+def _generate(prompt, temperature, **config_options):
+    """Kirim prompt ke Gemini dan kembalikan teks jawabannya."""
     client = _get_client()
     model = os.getenv("GEMINI_MODEL") or DEFAULT_MODEL
     try:
         response = client.models.generate_content(
             model=model,
-            contents=build_prompt(mode, text),
+            contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTION,
-                temperature=0.3,  # rendah agar hasil tetap setia pada materi
+                temperature=temperature,
+                **config_options,
             ),
         )
     except errors.APIError as error:
@@ -100,4 +121,108 @@ def process_text(text, mode):
             "AI tidak memberikan jawaban untuk materi ini. Coba ubah atau persingkat materinya.",
             502,
         )
-    return clean_output(response.text)
+    return response.text
+
+
+# ----- Mengolah materi (4 mode) -----
+def clean_output(text):
+    """Rapikan jawaban AI: buang simbol markdown dan samakan tanda poin."""
+    lines = []
+    for line in text.strip().splitlines():
+        line = line.replace("**", "").replace("__", "")
+        line = re.sub(r"^\s*#+\s*", "", line)  # judul markdown "# ..."
+        line = re.sub(r"^\s*[*•]\s+", "- ", line)  # poin "*" atau "•" menjadi "- "
+        lines.append(line.rstrip())
+    cleaned = "\n".join(lines)
+    return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+
+
+def process_text(text, mode):
+    """Olah materi sesuai mode, lalu kembalikan hasilnya sebagai teks."""
+    # Suhu rendah agar hasil tetap setia pada materi.
+    return clean_output(_generate(build_prompt(mode, text), temperature=0.3))
+
+
+# ----- Kuis -----
+def _strip_option_prefixes(options):
+    """Buang awalan "A." sampai "D." jika keempat pilihan memakainya secara berurutan."""
+    matches = [OPTION_PREFIX.match(option) for option in options]
+    if all(matches) and "".join(match.group(1).upper() for match in matches) == "ABCD":
+        return [option[match.end():] for option, match in zip(options, matches)]
+    return options
+
+
+def _clean_question(item):
+    """Kembalikan satu soal yang sudah dirapikan, atau None jika bentuknya tidak valid."""
+    if not isinstance(item, dict):
+        return None
+    question = item.get("question")
+    options = item.get("options")
+    answer_index = item.get("answer_index")
+    explanation = item.get("explanation")
+
+    if not all(isinstance(value, str) and value.strip() for value in (question, explanation)):
+        return None
+    if not isinstance(options, list) or len(options) != QUIZ_OPTION_COUNT:
+        return None
+    if not all(isinstance(option, str) and option.strip() for option in options):
+        return None
+    # bool termasuk int di Python, jadi ditolak secara khusus.
+    if isinstance(answer_index, bool) or not isinstance(answer_index, int):
+        return None
+    if not 0 <= answer_index < QUIZ_OPTION_COUNT:
+        return None
+
+    options = _strip_option_prefixes([option.strip() for option in options])
+    if len({option.lower() for option in options}) != QUIZ_OPTION_COUNT:
+        return None  # ada pilihan yang kembar
+
+    # Acak urutan pilihan agar jawaban benar tidak selalu di posisi yang sama.
+    order = random.sample(range(QUIZ_OPTION_COUNT), QUIZ_OPTION_COUNT)
+    return {
+        "question": question.strip(),
+        "options": [options[index] for index in order],
+        "answer_index": order.index(answer_index),
+        "explanation": explanation.strip(),
+    }
+
+
+def parse_quiz(raw_text):
+    """Validasi JSON kuis dari AI. Kembalikan daftar soal, atau None jika tidak valid."""
+    # Jaga-jaga jika AI membungkus JSON dengan pagar kode markdown.
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
+    try:
+        data = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return None
+
+    items = data.get("questions") if isinstance(data, dict) else None
+    if not isinstance(items, list):
+        return None
+
+    questions = [question for question in map(_clean_question, items) if question]
+    if len(questions) < QUIZ_MIN_QUESTIONS:
+        return None
+    return questions[:QUIZ_MAX_QUESTIONS]
+
+
+def generate_quiz(text):
+    """Minta AI membuat kuis dari materi, lalu kembalikan daftar soal yang sudah divalidasi."""
+    prompt = build_quiz_prompt(text)
+    for attempt in range(1, QUIZ_ATTEMPTS + 1):
+        raw_text = _generate(
+            prompt,
+            temperature=0.4,
+            response_mime_type="application/json",
+            response_schema=QUIZ_SCHEMA,
+        )
+        questions = parse_quiz(raw_text)
+        if questions:
+            return questions
+        logger.warning("Kuis dari AI tidak valid (percobaan %d dari %d)", attempt, QUIZ_ATTEMPTS)
+
+    raise AIError(
+        "AI belum berhasil membuat kuis dari materi ini. "
+        "Coba lagi, atau pakai materi yang lebih panjang.",
+        502,
+    )

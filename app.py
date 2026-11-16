@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
 
-from ai import AIError, process_text
+from ai import AIError, generate_quiz, process_text
 from pdf_utils import PdfError, extract_text
 from prompts import MODES
 
@@ -35,6 +35,25 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_PDF_BYTES + 64 * 1024
 
 def error_response(message, status_code):
     return jsonify({"error": message}), status_code
+
+
+def read_json_payload():
+    """Ambil isi JSON dari permintaan. Selalu berupa dict, kosong jika tidak valid."""
+    payload = request.get_json(silent=True)
+    return payload if isinstance(payload, dict) else {}
+
+
+def read_material(payload):
+    """Periksa teks materi. Kembalikan (teks, None) jika valid, atau (None, respons error)."""
+    text = payload.get("text")
+    if not isinstance(text, str) or not text.strip():
+        return None, error_response("Teks masih kosong. Tempel materi dulu, ya.", 400)
+    text = text.strip()
+    if len(text) > MAX_TEXT_CHARS:
+        return None, error_response(
+            f"Teks terlalu panjang. Maksimal {MAX_TEXT_LABEL} karakter.", 413
+        )
+    return text, None
 
 
 @app.get("/")
@@ -80,15 +99,11 @@ def api_extract_pdf():
 
 @app.post("/api/process")
 def api_process():
-    payload = request.get_json(silent=True) or {}
-    text = payload.get("text")
+    payload = read_json_payload()
+    text, error_reply = read_material(payload)
+    if error_reply:
+        return error_reply
     mode = payload.get("mode")
-
-    if not isinstance(text, str) or not text.strip():
-        return error_response("Teks masih kosong. Tempel materi dulu, ya.", 400)
-    text = text.strip()
-    if len(text) > MAX_TEXT_CHARS:
-        return error_response(f"Teks terlalu panjang. Maksimal {MAX_TEXT_LABEL} karakter.", 413)
     if mode not in MODES:
         return error_response("Mode tidak dikenal. Pilih salah satu mode yang tersedia.", 400)
 
@@ -97,6 +112,19 @@ def api_process():
     except AIError as error:
         return error_response(error.message, error.status_code)
     return jsonify({"result": result})
+
+
+@app.post("/api/quiz")
+def api_quiz():
+    text, error_reply = read_material(read_json_payload())
+    if error_reply:
+        return error_reply
+
+    try:
+        questions = generate_quiz(text)
+    except AIError as error:
+        return error_response(error.message, error.status_code)
+    return jsonify({"questions": questions})
 
 
 @app.errorhandler(HTTPException)

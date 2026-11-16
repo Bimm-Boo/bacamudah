@@ -75,12 +75,39 @@ Contoh format:
 - [istilah kedua]: [arti sederhana].""",
 }
 
+QUIZ_PROMPT = """Buat kuis pilihan ganda untuk mengecek pemahaman pembaca terhadap materi di bawah ini.
+
+Aturan:
+- Buat 3 sampai 5 soal. Semakin panjang materinya, semakin banyak soalnya.
+- Setiap soal menanyakan hal penting yang jawabannya ada di materi.
+- Gunakan kalimat pendek dan kata sehari-hari.
+- Setiap soal punya tepat 4 pilihan jawaban yang berbeda, dan hanya 1 yang benar.
+- Tulis pilihan tanpa awalan huruf seperti "A." atau "B.".
+- Jangan memakai pilihan seperti "semua benar", "semua salah", atau "A dan B".
+- Jangan menyebut huruf pilihan (A, B, C, D) di soal maupun penjelasan.
+- "answer_index" adalah nomor urut pilihan yang benar, dihitung dari 0 (0, 1, 2, atau 3).
+- "explanation" menjelaskan dalam 1-2 kalimat pendek mengapa jawaban itu benar, berdasarkan materi.
+- Jangan menambah fakta yang tidak ada di materi.
+
+Balas hanya dengan JSON berbentuk:
+{"questions": [{"question": "...", "options": ["...", "...", "...", "..."], "answer_index": 0, "explanation": "..."}]}"""
+
 # Daftar mode yang sah, dipakai untuk validasi di app.py.
 MODES = tuple(MODE_PROMPTS)
 
 
-def build_prompt(mode, text):
-    """Gabungkan instruksi mode dengan materi pengguna yang sudah dibungkus penanda."""
+def _wrap_material(instruction, text):
+    """Gabungkan instruksi dengan materi pengguna yang dibungkus penanda."""
     # Hapus penanda dari teks pengguna supaya materi tidak bisa "keluar" dari pembungkusnya.
     safe_text = text.replace(MATERIAL_START, "").replace(MATERIAL_END, "")
-    return f"{MODE_PROMPTS[mode]}\n\n{MATERIAL_START}\n{safe_text}\n{MATERIAL_END}"
+    return f"{instruction}\n\n{MATERIAL_START}\n{safe_text}\n{MATERIAL_END}"
+
+
+def build_prompt(mode, text):
+    """Prompt untuk mengolah materi sesuai mode yang dipilih."""
+    return _wrap_material(MODE_PROMPTS[mode], text)
+
+
+def build_quiz_prompt(text):
+    """Prompt untuk membuat kuis dari materi."""
+    return _wrap_material(QUIZ_PROMPT, text)
