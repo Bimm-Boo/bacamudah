@@ -8,9 +8,96 @@
   <p>BacaMudah membuat materi belajar apa pun lebih mudah dibaca, didengar, dan dipahami, terutama bagi penyandang disleksia.</p>
 </section>
 
-<section class="card">
-  <h2>Privasi</h2>
-  <p>Materi yang kamu masukkan hanya diproses lalu dibuang. BacaMudah tidak menyimpan materi kamu di server.</p>
-  <p><a href="{{ url_for('index') }}">Kembali ke halaman utama</a></p>
+{# Kelas reading-text: ukuran huruf dan jarak yang dipilih pengguna juga berlaku di halaman ini. #}
+<section class="card about reading-text" aria-labelledby="judul-masalah">
+  <h2 id="judul-masalah">Masalah yang ingin dibantu</h2>
+  <ul>
+    <li>Materi pelajaran sering ditulis dengan kalimat panjang, istilah teknis, dan paragraf padat.</li>
+    <li>Penyandang disleksia sulit mengenali kata dan mudah kehilangan baris saat membaca. Huruf yang rapat dan latar putih terang membuatnya makin berat.</li>
+    <li>Alat bantu baca yang ada biasanya berbahasa Inggris, berbayar, atau hanya menyelesaikan satu masalah.</li>
+  </ul>
+  <p>Akibatnya, siswa yang kesulitan membaca bisa tertinggal bukan karena kurang mampu, tetapi karena akses ke materinya tidak setara.</p>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-solusi">
+  <h2 id="judul-solusi">Solusi BacaMudah</h2>
+  <p>BacaMudah adalah website gratis berbahasa Indonesia. Tidak perlu memasang aplikasi atau membuat akun. Satu alat untuk tiga hal:</p>
+  <ul>
+    <li><strong>Menyederhanakan isi.</strong> AI mengubah materi menjadi teks sederhana, poin-poin, analogi, atau daftar istilah sulit.</li>
+    <li><strong>Menyesuaikan tampilan.</strong> Huruf ramah disleksia, ukuran huruf, jarak baris dan huruf, warna latar yang lembut, serta penggaris baca.</li>
+    <li><strong>Mendukung pemahaman.</strong> Baca nyaring dengan sorot kalimat, lalu kuis singkat untuk mengecek pemahaman.</li>
+  </ul>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-pengguna">
+  <h2 id="judul-pengguna">Untuk siapa?</h2>
+  <ul>
+    <li>Siswa SMP dan SMA dengan disleksia atau kesulitan membaca.</li>
+    <li>Mahasiswa yang membaca jurnal atau modul yang padat.</li>
+    <li>Guru, guru BK, guru inklusi, dan orang tua yang ingin menyiapkan materi yang lebih mudah untuk murid atau anaknya.</li>
+  </ul>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-cara">
+  <h2 id="judul-cara">Cara pakai</h2>
+  <ol>
+    <li>Tempel teks materi, unggah PDF, atau tekan <strong>Coba contoh materi</strong>.</li>
+    <li>Pilih cara penyajian: Teks Sederhana, Poin-Poin, Analogi, atau Istilah Sulit.</li>
+    <li>Tekan <strong>Proses</strong> dan tunggu beberapa detik.</li>
+    <li>Tekan <strong>Atur tampilan</strong> untuk memilih huruf, ukuran, jarak, warna latar, dan penggaris baca. Pilihanmu tetap tersimpan saat halaman dibuka lagi.</li>
+    <li>Tekan <strong>Dengarkan</strong> untuk mendengar hasilnya. Kalimat yang sedang dibacakan akan disorot.</li>
+    <li>Tekan <strong>Salin</strong> atau <strong>Unduh .txt</strong> untuk menyimpan hasil, lalu <strong>Buat Kuis</strong> untuk menguji pemahamanmu.</li>
+  </ol>
+  <p>Semua fitur bisa dipakai dengan keyboard: <kbd>Tab</kbd> untuk berpindah, <kbd>Enter</kbd> atau <kbd>Spasi</kbd> untuk memilih, dan tombol panah untuk pilihan dalam satu kelompok.</p>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-ai">
+  <h2 id="judul-ai">Penggunaan AI</h2>
+  <ul>
+    <li>Fitur penyederhanaan materi dan kuis memakai <strong>Gemini API</strong> dari Google.</li>
+    <li>AI diminta memakai bahasa Indonesia yang sederhana dan tidak menambah informasi di luar materi asli. Materimu diberi tanda batas khusus agar AI memperlakukannya sebagai bahan bacaan, bukan sebagai perintah.</li>
+    <li>Soal kuis diperiksa dulu oleh server (jumlah soal, pilihan jawaban, dan kunci jawaban) sebelum ditampilkan.</li>
+    <li><strong>AI tetap bisa keliru.</strong> Bandingkan hasilnya dengan materi asli, terutama untuk angka, nama, dan definisi penting.</li>
+    <li>Kode website ini dibuat dengan bantuan <strong>Claude Code</strong> (Anthropic) sebagai asisten pemrograman AI.</li>
+  </ul>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-privasi">
+  <h2 id="judul-privasi">Privasi</h2>
+  <ul>
+    <li>BacaMudah tidak memakai akun dan <strong>tidak menyimpan materimu</strong> di server. Materi hanya diproses, lalu dibuang.</li>
+    <li>Agar bisa diolah, materi dikirim ke Gemini API milik Google. BacaMudah memakai Gemini versi gratis, sehingga Google dapat memakai materi tersebut untuk meningkatkan layanannya, dan petugas Google dapat membacanya.</li>
+    <li>Karena itu, <strong>jangan masukkan data pribadi atau rahasia</strong>, misalnya nama lengkap, alamat, nomor telepon, atau nilai rapor.</li>
+    <li>Pengaturan tampilan hanya disimpan di browser kamu sendiri, bukan di server.</li>
+  </ul>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-batasan">
+  <h2 id="judul-batasan">Batasan</h2>
+  <ul>
+    <li>Teks maksimal {{ max_text_label }} karakter sekali proses.</li>
+    <li>PDF maksimal {{ max_pdf_mb }} MB dan harus berisi teks. PDF hasil scan atau foto belum bisa dibaca.</li>
+    <li>Suara baca nyaring berasal dari browser. Suara bahasa Indonesia paling lengkap ada di Google Chrome, baik di komputer maupun Android.</li>
+    <li>Agar tetap lancar untuk semua orang, satu perangkat bisa mengirim hingga {{ rate_limit_requests }} permintaan per menit.</li>
+  </ul>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-teknologi">
+  <h2 id="judul-teknologi">Teknologi dan aset terbuka</h2>
+  <ul>
+    <li>Server: Python dan Flask. Pembaca PDF: pypdf.</li>
+    <li>AI: Gemini API melalui library google-genai.</li>
+    <li>Tampilan: HTML, CSS, dan JavaScript tanpa framework.</li>
+    <li>Baca nyaring: Web Speech API bawaan browser.</li>
+    <li>Huruf: Lexend dan OpenDyslexic, keduanya berlisensi SIL Open Font License 1.1.</li>
+    <li>Hosting: Vercel.</li>
+  </ul>
+  <p>Kode sumber terbuka di <a href="https://github.com/Bimm-Boo/bacamudah">GitHub</a>.</p>
+</section>
+
+<section class="card about reading-text" aria-labelledby="judul-karya">
+  <h2 id="judul-karya">Tentang karya ini</h2>
+  <p>BacaMudah dibuat untuk lomba IT RUSH 2026 (HIMATIF UNIB), subtema Pendidikan, Tata Kelola, dan Teknologi Inklusif.</p>
+  <p><a class="btn btn-primary" href="{{ url_for('index') }}">Mulai pakai BacaMudah</a></p>
 </section>
 {% endblock %}

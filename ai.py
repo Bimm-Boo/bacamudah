@@ -5,6 +5,7 @@ import logging
 import os
 import random
 import re
+import time
 
 from google import genai
 from google.genai import errors, types
@@ -13,6 +14,8 @@ from prompts import SYSTEM_INSTRUCTION, build_prompt, build_quiz_prompt
 
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
 REQUEST_TIMEOUT_MS = 60_000  # batas tunggu jawaban AI (60 detik)
+API_ATTEMPTS = 2  # jika Gemini sedang sibuk (error 5xx), coba ulang sekali
+RETRY_DELAY_SECONDS = 2
 
 QUIZ_MIN_QUESTIONS = 3
 QUIZ_MAX_QUESTIONS = 5
@@ -93,20 +96,31 @@ def _friendly_api_error(error):
     return AIError("AI tidak bisa memproses permintaan ini. Coba lagi sebentar lagi.", 502)
 
 
+def _send(client, model, prompt, config):
+    """Kirim satu permintaan ke Gemini. Jika Gemini sedang sibuk (error 5xx), coba ulang sekali."""
+    for attempt in range(1, API_ATTEMPTS + 1):
+        try:
+            return client.models.generate_content(model=model, contents=prompt, config=config)
+        except errors.ServerError as error:
+            if attempt == API_ATTEMPTS:
+                raise
+            logger.warning(
+                "Gemini sibuk (error %s), coba ulang dalam %d detik", error.code, RETRY_DELAY_SECONDS
+            )
+            time.sleep(RETRY_DELAY_SECONDS)
+
+
 def _generate(prompt, temperature, **config_options):
     """Kirim prompt ke Gemini dan kembalikan teks jawabannya."""
     client = _get_client()
     model = os.getenv("GEMINI_MODEL") or DEFAULT_MODEL
+    config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        temperature=temperature,
+        **config_options,
+    )
     try:
-        response = client.models.generate_content(
-            model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                temperature=temperature,
-                **config_options,
-            ),
-        )
+        response = _send(client, model, prompt, config)
     except errors.APIError as error:
         logger.warning("Gemini API error %s: %s", error.code, error.message)
         raise _friendly_api_error(error) from error

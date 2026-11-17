@@ -2,6 +2,7 @@
 
 import io
 import logging
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ from werkzeug.exceptions import HTTPException
 from ai import AIError, generate_quiz, process_text
 from pdf_utils import PdfError, extract_text
 from prompts import MODES
+from rate_limit import RateLimiter
 
 load_dotenv()  # baca GEMINI_API_KEY dan GEMINI_MODEL dari file .env
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +23,9 @@ MAX_TEXT_LABEL = f"{MAX_TEXT_CHARS:,}".replace(",", ".")  # "15.000" (format Ind
 MAX_PDF_MB = 4
 MAX_PDF_BYTES = MAX_PDF_MB * 1024 * 1024
 SAMPLE_TEXT = (Path(__file__).parent / "sample" / "contoh.txt").read_text(encoding="utf-8")
+# Rate limit: tiap IP boleh 20 permintaan API per menit, agar kuota AI aman.
+RATE_LIMIT_REQUESTS = 20
+RATE_LIMIT_WINDOW_SECONDS = 60
 
 # Pesan ramah untuk error HTTP umum di endpoint API.
 HTTP_ERROR_MESSAGES = {
@@ -30,6 +35,16 @@ HTTP_ERROR_MESSAGES = {
     413: f"Ukuran file terlalu besar. Maksimal {MAX_PDF_MB} MB.",
 }
 
+# Judul dan pesan untuk halaman error (selain endpoint API).
+PAGE_NOT_FOUND = (
+    "Halaman tidak ditemukan",
+    "Alamat yang kamu buka tidak ada. Mungkin ada salah ketik.",
+)
+PAGE_ERROR = (
+    "Terjadi kesalahan",
+    "Halaman ini belum bisa ditampilkan. Coba muat ulang, atau kembali ke halaman utama.",
+)
+
 # File statis ada di public/static: di Vercel folder public/ disajikan langsung
 # oleh CDN, dan saat dijalankan di laptop Flask yang menyajikannya. Alamatnya
 # tetap /static/... di kedua tempat.
@@ -37,9 +52,27 @@ app = Flask(__name__, static_folder="public/static")
 # Batas ukuran upload, ditambah sedikit ruang untuk data form selain file.
 app.config["MAX_CONTENT_LENGTH"] = MAX_PDF_BYTES + 64 * 1024
 
+api_limiter = RateLimiter(RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_SECONDS)
+
 
 def error_response(message, status_code):
     return jsonify({"error": message}), status_code
+
+
+def error_page(status_code):
+    """Halaman error yang ramah untuk pengunjung (bukan untuk endpoint API)."""
+    title, message = PAGE_NOT_FOUND if status_code == 404 else PAGE_ERROR
+    return render_template("error.html", title=title, message=message), status_code
+
+
+def client_ip():
+    """Alamat IP pengunjung, dipakai untuk rate limit."""
+    # Di Vercel, permintaan lewat proxy milik Vercel. IP asli pengunjung ada di
+    # header X-Real-IP, yang selalu diisi ulang oleh Vercel sehingga tidak bisa
+    # dipalsukan. Di laptop tidak ada proxy, jadi pakai alamat koneksi langsung.
+    if os.getenv("VERCEL"):
+        return request.headers.get("X-Real-IP") or request.remote_addr
+    return request.remote_addr
 
 
 def read_json_payload():
@@ -61,6 +94,18 @@ def read_material(payload):
     return text, None
 
 
+@app.before_request
+def limit_api_requests():
+    """Tolak permintaan API jika satu IP mengirim terlalu banyak dalam satu menit."""
+    if not request.path.startswith("/api/"):
+        return None
+    wait_seconds = api_limiter.check(client_ip())
+    if wait_seconds:
+        message = f"Kamu mengirim terlalu banyak permintaan. Tunggu {wait_seconds} detik, lalu coba lagi."
+        return jsonify({"error": message}), 429, {"Retry-After": str(wait_seconds)}
+    return None
+
+
 @app.get("/")
 def index():
     return render_template(
@@ -74,7 +119,12 @@ def index():
 
 @app.get("/tentang")
 def tentang():
-    return render_template("tentang.html")
+    return render_template(
+        "tentang.html",
+        max_text_label=MAX_TEXT_LABEL,
+        max_pdf_mb=MAX_PDF_MB,
+        rate_limit_requests=RATE_LIMIT_REQUESTS,
+    )
 
 
 @app.get("/health")
@@ -135,11 +185,11 @@ def api_quiz():
 
 @app.errorhandler(HTTPException)
 def handle_http_error(error):
-    """Endpoint API selalu membalas JSON, termasuk saat error."""
+    """Endpoint API membalas JSON; halaman biasa menampilkan halaman error yang ramah."""
     if request.path.startswith("/api/"):
         message = HTTP_ERROR_MESSAGES.get(error.code, "Permintaan tidak bisa diproses.")
         return error_response(message, error.code)
-    return error
+    return error_page(error.code)
 
 
 @app.errorhandler(Exception)
@@ -148,7 +198,7 @@ def handle_unexpected_error(error):
     app.logger.exception("Error tak terduga")
     if request.path.startswith("/api/"):
         return error_response("Terjadi kesalahan di server. Coba lagi sebentar lagi.", 500)
-    return "Terjadi kesalahan di server. Coba muat ulang halaman.", 500
+    return error_page(500)
 
 
 if __name__ == "__main__":

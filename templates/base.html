@@ -15,12 +15,15 @@
 
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="{{ url_for('index') }}">
+      {# aria-current memberi tahu pembaca layar halaman mana yang sedang dibuka. #}
+      <a class="brand" href="{{ url_for('index') }}"
+         {%- if request.endpoint == 'index' %} aria-current="page"{% endif %}>
         <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="36" height="36">
         <span>BacaMudah</span>
       </a>
       <nav aria-label="Menu utama">
-        <a class="nav-link" href="{{ url_for('tentang') }}">Tentang</a>
+        <a class="nav-link" href="{{ url_for('tentang') }}"
+           {%- if request.endpoint == 'tentang' %} aria-current="page"{% endif %}>Tentang</a>
       </nav>
     </div>
   </header>

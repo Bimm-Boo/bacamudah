@@ -400,6 +400,44 @@ input[type="file"]::file-selector-button {
   cursor: pointer;
 }
 
+/* ===== Halaman Tentang dan halaman error ===== */
+.about ul,
+.about ol {
+  margin: 0 0 1em;
+  padding-left: 1.4em;
+}
+
+/* Nomor "1." lebih lebar dari titik, apalagi dengan jarak huruf renggang */
+.about ol {
+  padding-left: 2.2em;
+}
+
+.about li + li {
+  margin-top: 0.5em;
+}
+
+.about p {
+  margin: 0 0 1em;
+}
+
+.about > :last-child {
+  margin-bottom: 0;
+}
+
+kbd {
+  padding: 0.05em 0.4em;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.error-actions {
+  margin: 24px 0 0;
+}
+
 /* ===== Tombol ===== */
 .btn {
   display: inline-flex;
@@ -412,6 +450,7 @@ input[type="file"]::file-selector-button {
   border-radius: 10px;
   font: inherit;
   font-weight: 600;
+  text-decoration: none; /* untuk tautan yang tampil sebagai tombol */
   cursor: pointer;
 }
 
