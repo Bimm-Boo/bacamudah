@@ -14,26 +14,98 @@
   <a class="skip-link" href="#konten">Langsung ke konten utama</a>
 
   <header class="site-header">
-    <div class="container header-inner">
+    <div class="container container-wide header-inner">
       {# aria-current memberi tahu pembaca layar halaman mana yang sedang dibuka. #}
       <a class="brand" href="{{ url_for('index') }}"
          {%- if request.endpoint == 'index' %} aria-current="page"{% endif %}>
         <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="40" height="40">
         <span>BacaMudah</span>
       </a>
-      <nav aria-label="Menu utama">
-        <a class="nav-link" href="{{ url_for('tentang') }}"
-           {%- if request.endpoint == 'tentang' %} aria-current="page"{% endif %}>Tentang</a>
+      <nav class="site-nav" aria-label="Menu utama">
+        {# Label pendek untuk HP, label lengkap untuk layar lebar (diatur CSS). #}
+        <button type="button" id="settings-toggle" class="nav-item"
+                aria-expanded="false" aria-controls="settings-panel">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/></svg>
+          <span class="label-short">Tampilan</span>
+          <span class="label-long">Atur tampilan</span>
+        </button>
+        <a class="nav-item" href="{{ url_for('tentang') }}"
+           {%- if request.endpoint == 'tentang' %} aria-current="page"{% endif %}>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5h.01"/></svg>
+          <span>Tentang</span>
+        </a>
       </nav>
     </div>
   </header>
 
-  <main id="konten" class="container">
+  {# Panel pengaturan tampilan, tersedia di semua halaman.
+     Di HP muncul sebagai lembar dari bawah layar; di layar lebar mengambang di kanan atas. #}
+  <div id="settings-panel" class="settings-panel" role="region" aria-labelledby="settings-title" tabindex="-1" hidden>
+    <div class="settings-head">
+      <p id="settings-title" class="settings-title">Atur tampilan</p>
+      <button type="button" id="settings-close" class="btn btn-secondary btn-small">Selesai</button>
+    </div>
+    <p class="settings-preview reading-text">Contoh: Air laut menguap karena panas matahari, lalu berubah menjadi awan.</p>
+    <fieldset class="setting">
+      <legend>Jenis huruf</legend>
+      <div class="choice-row choice-row-wide">
+        <label class="choice font-lexend"><input type="radio" name="font" value="lexend" checked>Lexend</label>
+        <label class="choice font-opendyslexic"><input type="radio" name="font" value="opendyslexic">OpenDyslexic</label>
+        <label class="choice font-sans"><input type="radio" name="font" value="sans">Biasa</label>
+      </div>
+    </fieldset>
+
+    <div class="setting">
+      <div class="setting-head">
+        <label for="setting-size">Ukuran huruf</label>
+        <span class="setting-value" data-value-for="size">18 px</span>
+      </div>
+      <input type="range" id="setting-size" name="size" min="16" max="28" step="1" value="18">
+    </div>
+    <div class="setting">
+      <div class="setting-head">
+        <label for="setting-line">Jarak baris</label>
+        <span class="setting-value" data-value-for="lineHeight">1,8</span>
+      </div>
+      <input type="range" id="setting-line" name="lineHeight" min="1.5" max="2.5" step="0.1" value="1.8">
+    </div>
+
+    <fieldset class="setting">
+      <legend>Jarak antar huruf</legend>
+      <div class="choice-row">
+        <label class="choice"><input type="radio" name="spacing" value="normal" checked>Normal</label>
+        <label class="choice"><input type="radio" name="spacing" value="renggang">Renggang</label>
+        <label class="choice"><input type="radio" name="spacing" value="sangat">Sangat renggang</label>
+      </div>
+    </fieldset>
+
+    <fieldset class="setting">
+      <legend>Warna latar</legend>
+      <div class="choice-row">
+        <label class="choice"><input type="radio" name="theme" value="krem" checked><span class="swatch swatch-krem"></span>Krem</label>
+        <label class="choice"><input type="radio" name="theme" value="kuning"><span class="swatch swatch-kuning"></span>Kuning pucat</label>
+        <label class="choice"><input type="radio" name="theme" value="biru"><span class="swatch swatch-biru"></span>Biru muda</label>
+        <label class="choice"><input type="radio" name="theme" value="gelap"><span class="swatch swatch-gelap"></span>Gelap lembut</label>
+      </div>
+    </fieldset>
+
+    <div class="setting">
+      <label class="check"><input type="checkbox" name="ruler">Penggaris baca</label>
+      <p class="hint">Pita sorot yang mengikuti kursor atau sentuhan, supaya kamu tidak kehilangan baris.</p>
+    </div>
+
+    <div class="settings-footer">
+      <button type="button" id="settings-reset" class="btn btn-secondary">Atur ulang</button>
+      <span id="settings-status" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <main id="konten" class="container {% block main_class %}{% endblock %}">
     {% block content %}{% endblock %}
   </main>
 
   <footer class="site-footer">
-    <div class="container">
+    <div class="container container-wide">
       <p>BacaMudah · Karya tim Sangatta Keren untuk IT RUSH 2026</p>
     </div>
   </footer>

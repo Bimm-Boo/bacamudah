@@ -110,13 +110,31 @@
 
   function setupPanel() {
     const toggleButton = document.getElementById("settings-toggle");
+    const closeButton = document.getElementById("settings-close");
     const resetButton = document.getElementById("settings-reset");
     const status = document.getElementById("settings-status");
 
+    // Saat dibuka, fokus pindah ke panel agar pembaca layar langsung mengumumkannya.
+    // Saat ditutup lewat tombol Selesai atau Esc, fokus kembali ke tombol di header.
+    function openPanel() {
+      panel.hidden = false;
+      toggleButton.setAttribute("aria-expanded", "true");
+      panel.focus();
+    }
+
+    function closePanel(returnFocus) {
+      panel.hidden = true;
+      toggleButton.setAttribute("aria-expanded", "false");
+      if (returnFocus) toggleButton.focus();
+    }
+
     toggleButton.addEventListener("click", function () {
-      const willOpen = panel.hidden;
-      panel.hidden = !willOpen;
-      toggleButton.setAttribute("aria-expanded", String(willOpen));
+      if (panel.hidden) openPanel();
+      else closePanel(false);
+    });
+    closeButton.addEventListener("click", function () { closePanel(true); });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !panel.hidden) closePanel(true);
     });
 
     // Satu pendengar untuk semua kontrol: nama input = nama pengaturan.

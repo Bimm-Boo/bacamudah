@@ -291,24 +291,33 @@ a {
 }
 
 /* ===== Header dan footer ===== */
+/* Header menempel di atas, jadi tombol Tampilan selalu bisa dijangkau saat membaca */
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   background: var(--surface);
   border-bottom: 2px solid var(--border);
+  /* Logo dan menu selalu Lexend agar tetap sebaris di HP walau isi halaman memakai
+     huruf yang lebih lebar (OpenDyslexic). Lexend juga dirancang ramah pembaca. */
+  font-family: "Lexend", var(--font-system);
 }
 
 .header-inner {
   display: flex;
+  flex-wrap: wrap; /* cadangan jika huruf sangat lebar: menu turun ke baris kedua */
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 68px;
+  gap: 6px 8px;
+  min-height: 64px;
+  padding: 6px 12px; /* sedikit lebih rapat dari kontainer biasa agar logo dan menu muat sebaris di HP */
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1.3rem;
+  gap: 8px;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--primary-strong);
   text-decoration: none;
@@ -316,29 +325,73 @@ a {
 
 .brand img {
   flex: none;
+  width: 34px;
+  height: 34px;
 }
 
-.nav-link {
+.site-nav {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* Di HP: ikon di atas, label pendek di bawah (seperti menu aplikasi) */
+.nav-item {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  min-height: 44px;
-  padding: 6px 16px;
+  justify-content: center;
+  gap: 2px;
+  min-width: 64px;
+  min-height: 52px;
+  padding: 4px 6px;
   border: 2px solid var(--border);
-  border-radius: 999px;
+  border-radius: 14px;
   box-shadow: 0 3px 0 var(--border-edge);
   background: var(--surface);
   color: var(--primary-strong);
+  font: inherit;
+  font-size: 0.875rem;
   font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
   text-decoration: none;
+  cursor: pointer;
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out;
 }
 
-.nav-link:hover {
+.nav-item:hover {
   background: var(--primary-soft);
 }
 
-.nav-link[aria-current="page"] {
+.nav-item:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+/* Halaman yang sedang dibuka, atau panel yang sedang terbuka */
+.nav-item[aria-current="page"],
+.nav-item[aria-expanded="true"] {
   border-color: var(--primary);
+  box-shadow: 0 3px 0 var(--primary-edge);
   background: var(--primary-soft);
+}
+
+.label-long {
+  display: none;
+}
+
+/* HP sangat kecil (di bawah 360px): nama di samping logo disembunyikan secara visual
+   agar header tetap sebaris, tapi tetap dibacakan pembaca layar. */
+@media (max-width: 359px) {
+  .brand span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 .site-footer {
@@ -404,6 +457,11 @@ a {
 }
 
 /* ===== Kartu ===== */
+.card,
+h2 {
+  scroll-margin-top: 88px; /* tinggi header yang menempel + sedikit ruang */
+}
+
 .card {
   margin-top: 20px;
   padding: 20px 16px;
@@ -813,12 +871,63 @@ input[type="file"]::file-selector-button {
   flex-basis: 100%;
 }
 
+/* Panel pengaturan. Di HP: lembar dari bawah layar, jadi teks di atasnya
+   tetap terlihat saat pengaturan diubah. */
 .settings-panel {
-  margin: 4px 0 20px;
-  padding: 16px;
+  position: fixed;
+  z-index: 40;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 62vh;
+  max-height: 62dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px 20px;
+  border: 2px solid var(--border);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -10px 30px rgba(15, 25, 30, 0.22);
+}
+
+.settings-panel:focus {
+  outline: none; /* panel menerima fokus saat dibuka; yang perlu terlihat adalah kontrol di dalamnya */
+}
+
+/* Judul panel dan tombol Selesai tetap terlihat saat isi panel digulir */
+.settings-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -16px 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 2px solid var(--border);
+  background: var(--surface);
+}
+
+.settings-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+/* Contoh teks di dalam panel: langsung menunjukkan efek pengaturan */
+.settings-preview {
+  margin: 0 0 16px;
+  padding: 12px 14px;
   border: 2px dashed var(--border-strong);
-  border-radius: 18px;
-  background: var(--bg);
+  border-radius: 14px;
+  background: var(--input-bg);
+}
+
+.btn-small {
+  min-height: 44px;
+  padding: 6px 16px;
 }
 
 .setting {
@@ -869,9 +978,10 @@ input[type="file"]::file-selector-button {
   gap: 10px;
 }
 
-/* Baris pilihan font lebih lebar karena "OpenDyslexic" tidak bisa dipotong */
+/* Pilihan font satu kolom: nama "OpenDyslexic" dalam hurufnya sendiri cukup lebar
+   dan tidak boleh terpotong di panel yang sempit */
 .choice-row-wide {
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .choice {
@@ -1400,8 +1510,60 @@ kbd {
     padding: 18px 16px;
   }
 
+  /* Tombol header jadi pil dengan label lengkap */
+  .header-inner {
+    min-height: 72px;
+    padding: 6px 16px;
+  }
+
+  .brand {
+    font-size: 1.3rem;
+  }
+
+  .brand img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .site-nav {
+    gap: 10px;
+  }
+
+  .nav-item {
+    flex-direction: row;
+    gap: 8px;
+    min-height: 46px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 1rem;
+  }
+
+  .label-short {
+    display: none;
+  }
+
+  .label-long {
+    display: inline;
+  }
+
+  /* Panel mengambang di kanan atas, di bawah header */
   .settings-panel {
-    padding: 20px;
+    top: 84px;
+    left: auto;
+    right: max(16px, calc((100vw - 1200px) / 2 + 16px));
+    bottom: auto;
+    width: 420px;
+    max-height: calc(100vh - 100px);
+    padding: 0 20px 20px;
+    border: 2px solid var(--border);
+    border-bottom: 5px solid var(--border-edge);
+    border-radius: var(--radius);
+    box-shadow: 0 18px 40px rgba(15, 25, 30, 0.2);
+  }
+
+  .settings-head {
+    margin: 0 -20px 14px;
+    padding: 16px 20px 12px;
   }
 
   .tts-bar {
@@ -1429,10 +1591,39 @@ kbd {
     flex: 0 0 auto;
   }
 
-  /* Dua penggeser (ukuran dan jarak baris) berdampingan */
-  .setting-pair {
+}
+
+/* ===== Desktop: ruang kerja dua kolom (materi di kiri, hasil di kanan) ===== */
+@media (min-width: 1024px) {
+  .container-wide {
+    max-width: 1200px;
+  }
+
+  .container-wide .hero {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 40px;
+    padding-bottom: 8px;
+  }
+
+  .container-wide .hero h1 {
+    margin-bottom: 14px;
+  }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
     gap: 24px;
+  }
+
+  .workspace textarea {
+    min-height: 280px;
+  }
+
+  /* Area hasil sudah terlihat sejak awal, jadi diberi tinggi minimum */
+  .workspace .result-output {
+    min-height: 14em;
   }
 }
