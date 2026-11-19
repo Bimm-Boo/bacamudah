@@ -5,7 +5,10 @@
 {% block content %}
 <section class="hero">
   <h1>Tentang BacaMudah</h1>
-  <p>BacaMudah membuat materi belajar apa pun lebih mudah dibaca, didengar, dan dipahami, terutama bagi penyandang disleksia.</p>
+  <div class="greeting">
+    {% include "_maskot.html" %}
+    <p class="bubble">BacaMudah membuat materi belajar apa pun lebih mudah dibaca, didengar, dan dipahami, terutama bagi penyandang disleksia.</p>
+  </div>
 </section>
 
 {# Kelas reading-text: ukuran huruf dan jarak yang dipilih pengguna juga berlaku di halaman ini. #}

@@ -3,7 +3,10 @@
 {% block content %}
 <section class="hero">
   <h1>Materi belajar jadi lebih mudah dibaca.</h1>
-  <p>Tempel teks atau unggah PDF, lalu pilih cara penyajian yang paling membantu kamu.</p>
+  <div class="greeting">
+    {% include "_maskot.html" %}
+    <p class="bubble">Hai! Tempel teks atau unggah PDF, lalu pilih cara penyajian. Aku bantu bikin materinya lebih mudah dipahami.</p>
+  </div>
 </section>
 
 <section class="card" aria-labelledby="judul-input">
@@ -43,25 +46,29 @@
   <div class="mode-grid" role="radiogroup" aria-labelledby="judul-mode">
     <label class="mode-option">
       <input type="radio" name="mode" value="sederhana" checked>
-      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg>
+      <span class="mode-check" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="mode-icon-wrap"><svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg></span>
       <span class="mode-label">Teks Sederhana</span>
       <span class="mode-desc">Kalimat pendek dan kata sehari-hari</span>
     </label>
     <label class="mode-option">
       <input type="radio" name="mode" value="poin">
-      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>
+      <span class="mode-check" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="mode-icon-wrap"><svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg></span>
       <span class="mode-label">Poin-Poin</span>
       <span class="mode-desc">Ringkasan 5–10 poin utama</span>
     </label>
     <label class="mode-option">
       <input type="radio" name="mode" value="analogi">
-      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>
+      <span class="mode-check" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="mode-icon-wrap"><svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg></span>
       <span class="mode-label">Analogi</span>
       <span class="mode-desc">Perumpamaan dari kehidupan sehari-hari</span>
     </label>
     <label class="mode-option">
       <input type="radio" name="mode" value="istilah">
-      <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 8h6M9 11.5h4"/></svg>
+      <span class="mode-check" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="mode-icon-wrap"><svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 8h6M9 11.5h4"/></svg></span>
       <span class="mode-label">Istilah Sulit</span>
       <span class="mode-desc">Daftar kata sulit dan artinya</span>
     </label>
@@ -73,43 +80,14 @@
 <section class="card" aria-labelledby="judul-hasil">
   <h2 id="judul-hasil" tabindex="-1"><span class="step">3</span> Hasil</h2>
 
-  {# Kontrol baca nyaring: tersembunyi sampai tts.js memastikan browser mendukungnya. #}
-  <div id="tts-controls" class="toolbar" role="group" aria-label="Baca nyaring" hidden>
-    <button type="button" id="tts-play" class="btn btn-primary tts-play" data-state="idle" disabled>
-      <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
-      <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg>
-      <span id="tts-play-label">Dengarkan</span>
-    </button>
-    <button type="button" id="tts-stop" class="btn btn-secondary" disabled>
-      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/></svg>
-      Berhenti
-    </button>
-    <div class="rate-field" role="radiogroup" aria-labelledby="tts-rate-label">
-      <span id="tts-rate-label">Kecepatan</span>
-      <label class="choice"><input type="radio" name="tts-rate" value="0.75">0,75x</label>
-      <label class="choice"><input type="radio" name="tts-rate" value="1" checked>1x</label>
-      <label class="choice"><input type="radio" name="tts-rate" value="1.25">1,25x</label>
-    </div>
-  </div>
-  <p id="tts-note" class="hint" role="status" hidden></p>
+
+
 
   <div class="toolbar">
     <button type="button" id="settings-toggle" class="btn btn-secondary"
             aria-expanded="false" aria-controls="settings-panel">
       <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/></svg>
       Atur tampilan
-    </button>
-    <button type="button" id="copy-btn" class="btn btn-secondary" disabled>
-      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
-      Salin
-    </button>
-    <button type="button" id="download-btn" class="btn btn-secondary" disabled>
-      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
-      Unduh .txt
-    </button>
-    <button type="button" id="quiz-btn" class="btn btn-secondary" disabled>
-      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.5-1.2 1-1.2 1.9"/><path d="M12 17h.01"/></svg>
-      Buat Kuis
     </button>
   </div>
 
@@ -170,6 +148,26 @@
     </div>
   </div>
 
+  {# Kontrol baca nyaring: tersembunyi sampai tts.js memastikan browser mendukungnya. #}
+  <div id="tts-controls" class="toolbar tts-bar" role="group" aria-label="Baca nyaring" hidden>
+    <button type="button" id="tts-play" class="btn btn-primary tts-play" data-state="idle" disabled>
+      <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+      <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg>
+      <span id="tts-play-label">Dengarkan</span>
+    </button>
+    <button type="button" id="tts-stop" class="btn btn-secondary" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/></svg>
+      Berhenti
+    </button>
+    <div class="rate-field" role="radiogroup" aria-labelledby="tts-rate-label">
+      <span id="tts-rate-label">Kecepatan</span>
+      <label class="choice"><input type="radio" name="tts-rate" value="0.75">0,75x</label>
+      <label class="choice"><input type="radio" name="tts-rate" value="1" checked>1x</label>
+      <label class="choice"><input type="radio" name="tts-rate" value="1.25">1,25x</label>
+    </div>
+  </div>
+  <p id="tts-note" class="hint" role="status" hidden></p>
+
   <div id="result-status" class="result-status" role="status" aria-live="polite"></div>
 
   <div id="result-error" class="message message-error" hidden>
@@ -179,6 +177,22 @@
 
   <div id="result-output" class="result-output reading-text">
     <p class="placeholder">Hasil akan muncul di sini setelah kamu menekan tombol Proses.</p>
+  </div>
+
+  {# Langkah berikutnya setelah membaca: simpan hasil atau uji pemahaman. #}
+  <div class="toolbar result-actions">
+    <button type="button" id="copy-btn" class="btn btn-secondary" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+      Salin
+    </button>
+    <button type="button" id="download-btn" class="btn btn-secondary" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
+      Unduh .txt
+    </button>
+    <button type="button" id="quiz-btn" class="btn btn-accent" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.5-1.2 1-1.2 1.9"/><path d="M12 17h.01"/></svg>
+      Buat Kuis
+    </button>
   </div>
 </section>
 

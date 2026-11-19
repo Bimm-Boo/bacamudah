@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.exceptions import HTTPException
 
 from ai import AIError, generate_quiz, process_text
@@ -125,6 +125,12 @@ def tentang():
         max_pdf_mb=MAX_PDF_MB,
         rate_limit_requests=RATE_LIMIT_REQUESTS,
     )
+
+
+@app.get("/favicon.ico")
+def favicon():
+    # Browser selalu meminta /favicon.ico; arahkan ke logo SVG agar tidak muncul error 404.
+    return redirect(url_for("static", filename="img/logo.svg"), 301)
 
 
 @app.get("/health")

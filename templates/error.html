@@ -5,7 +5,11 @@
 {% block content %}
 <section class="hero">
   <h1>{{ title }}</h1>
-  <p>{{ message }}</p>
+  <div class="greeting">
+    {% set mascot_mood = "sedih" %}
+    {% include "_maskot.html" %}
+    <p class="bubble">{{ message }}</p>
+  </div>
 </section>
 
 <p class="error-actions">

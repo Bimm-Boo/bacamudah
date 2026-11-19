@@ -79,9 +79,23 @@
     renderQuestion();
   }
 
+  // Bilah kemajuan: terisi sesuai jumlah soal yang sudah dijawab.
+  function createProgress() {
+    const top = createElement("div", "quiz-top");
+    const bar = createElement("div", "quiz-bar");
+    bar.setAttribute("aria-hidden", "true"); // angka "Soal x dari y" sudah cukup untuk pembaca layar
+    bar.append(createElement("span", "quiz-bar-fill"));
+    top.append(bar, createElement("p", "quiz-progress", "Soal " + (current + 1) + " dari " + questions.length));
+    return top;
+  }
+
+  function setProgress(answeredCount) {
+    body.querySelector(".quiz-bar-fill").style.width = (answeredCount / questions.length) * 100 + "%";
+  }
+
   function renderQuestion() {
     const item = questions[current];
-    const progress = createElement("p", "quiz-progress", "Soal " + (current + 1) + " dari " + questions.length);
+    const progress = createProgress();
     const question = createElement("p", "quiz-question", item.question);
     question.id = "quiz-question";
     question.tabIndex = -1;
@@ -98,10 +112,14 @@
     });
 
     // Area umpan balik dibuat kosong lebih dulu agar isinya dibacakan pembaca layar saat muncul.
+    // Panel pembungkusnya baru berwarna setelah soal dijawab.
+    const panel = createElement("div", "quiz-panel");
     const feedback = createElement("div", "quiz-feedback");
     feedback.setAttribute("aria-live", "polite");
+    panel.append(feedback);
 
-    body.replaceChildren(progress, question, options, feedback);
+    body.replaceChildren(progress, question, options, panel);
+    setProgress(current);
     question.focus();
   }
 
@@ -125,17 +143,31 @@
       );
     });
 
-    const verdict = isCorrect
-      ? "Benar!"
-      : "Belum tepat. Jawaban yang benar: " + LETTERS[item.answer_index] + ". " + item.options[item.answer_index];
-    body.querySelector(".quiz-feedback").append(
-      createElement("p", "quiz-verdict " + (isCorrect ? "is-correct" : "is-wrong"), verdict),
-      createElement("p", "quiz-explanation", item.explanation)
-    );
+    const verdict = createElement("p", "quiz-verdict");
+    const verdictIcon = createElement("span", "quiz-mark", isCorrect ? "✓" : "✗");
+    verdictIcon.setAttribute("aria-hidden", "true");
+    verdict.append(verdictIcon, " " + (isCorrect ? "Benar, hebat!" : "Belum tepat."));
 
+    const feedbackItems = [verdict];
+    if (!isCorrect) {
+      const correctText = LETTERS[item.answer_index] + ". " + item.options[item.answer_index];
+      feedbackItems.push(createElement("p", "quiz-answer", "Jawaban yang benar: " + correctText));
+    }
+    feedbackItems.push(createElement("p", "quiz-explanation", item.explanation));
+
+    const panel = body.querySelector(".quiz-panel");
+    panel.classList.add(isCorrect ? "is-correct" : "is-wrong");
+    panel.querySelector(".quiz-feedback").append(...feedbackItems);
+    setProgress(current + 1);
+
+    // Tombol lanjut berada di luar area aria-live agar tidak ikut dibacakan dua kali.
     const isLast = current === questions.length - 1;
-    const nextButton = createButton("btn btn-primary", isLast ? "Lihat skor" : "Soal berikutnya", isLast ? showScore : nextQuestion);
-    body.append(nextButton);
+    const nextButton = createButton(
+      "btn " + (isCorrect ? "btn-success" : "btn-danger"),
+      isLast ? "Lihat skor" : "Soal berikutnya",
+      isLast ? showScore : nextQuestion
+    );
+    panel.append(nextButton);
     nextButton.focus();
   }
 
@@ -151,13 +183,22 @@
   }
 
   function showScore() {
+    // Lencana angka besar hanya hiasan; kalimat skor di bawahnya yang dibacakan.
+    const badge = createElement("div", "quiz-score-badge");
+    badge.setAttribute("aria-hidden", "true");
+    badge.append(createElement("strong", "", String(score)), "dari " + questions.length);
+
     const title = createElement("p", "quiz-score", "Skor kamu: " + score + " dari " + questions.length);
     title.tabIndex = -1;
-    body.replaceChildren(
+
+    const result = createElement("div", "quiz-result");
+    result.append(
+      badge,
       title,
       createElement("p", "quiz-explanation", scoreMessage()),
-      createButton("btn btn-secondary", "Ulangi kuis", startQuiz)
+      createButton("btn btn-primary", "Ulangi kuis", startQuiz)
     );
+    body.replaceChildren(result);
     title.focus();
   }
 
