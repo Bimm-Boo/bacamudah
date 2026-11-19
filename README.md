@@ -219,8 +219,8 @@ Lomba ini mewajibkan transparansi penggunaan AI. Berikut rinciannya.
 
 | Nama | Peran |
 |---|---|
-| [ISI: nama anggota 1] | [ISI: peran anggota 1] |
-| [ISI: nama anggota 2] | [ISI: peran anggota 2] |
+| [Fadlan Iffat Inayat] | [Menanmbahkan fitur baru dan membuat flow dari jalannya web] |
+
 
 Yang dikerjakan tim:
 
