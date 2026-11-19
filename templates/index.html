@@ -7,7 +7,7 @@
   <h1>Materi belajar jadi lebih mudah dibaca.</h1>
   <div class="greeting">
     {% include "_maskot.html" %}
-    <p class="bubble">Hai! Tempel teks atau unggah PDF, lalu pilih cara penyajian. Aku bantu bikin materinya lebih mudah dipahami.</p>
+    <p class="bubble">Hai! Tempel materimu, aku bantu bikin lebih mudah dipahami.</p>
   </div>
 </section>
 
@@ -78,7 +78,10 @@
     </label>
   </div>
 
-  <button type="button" id="process-btn" class="btn btn-primary btn-large" disabled>Proses</button>
+  <button type="button" id="process-btn" class="btn btn-primary btn-large"
+          aria-describedby="process-hint" disabled>Proses</button>
+  {# Alasan tombol Proses belum bisa ditekan (diisi app.js). #}
+  <p id="process-hint" class="hint process-hint" hidden></p>
 </section>
 
 </div>
@@ -115,6 +118,9 @@
     <p id="result-error-text" role="alert"></p>
     <button type="button" id="retry-btn" class="btn btn-secondary">Coba lagi</button>
   </div>
+
+  {# Muncul jika materi atau sumbernya berubah setelah hasil tampil (diisi app.js). #}
+  <p id="result-stale" class="message message-warning" role="status"></p>
 
   <div id="result-output" class="result-output reading-text">
     <p class="placeholder">Hasil akan muncul di sini setelah kamu menekan tombol Proses.</p>

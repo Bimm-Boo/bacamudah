@@ -202,19 +202,32 @@
     title.focus();
   }
 
-  // Hasil baru berarti materinya berganti: simpan materinya dan buang kuis lama.
-  function handleNewResult(event) {
-    sourceText = event.detail.sourceText;
+  // Buang kuis yang sedang tampil, termasuk permintaan kuis yang belum selesai.
+  function resetQuiz() {
     requestId += 1;
     isLoading = false;
-    quizButton.disabled = false;
     section.hidden = true;
     errorBox.hidden = true;
     status.textContent = "";
     body.replaceChildren();
   }
 
+  // Hasil baru berarti materinya berganti: simpan materinya dan buang kuis lama.
+  function handleNewResult(event) {
+    sourceText = event.detail.sourceText;
+    resetQuiz();
+    quizButton.disabled = false;
+  }
+
+  // Materi diubah setelah hasil tampil: kuis lama tidak lagi sesuai dengan materi di layar.
+  function handleStale(event) {
+    if (!sourceText) return;
+    if (event.detail.stale) resetQuiz();
+    quizButton.disabled = event.detail.stale;
+  }
+
   quizButton.addEventListener("click", loadQuiz);
   retryButton.addEventListener("click", loadQuiz);
   document.addEventListener("bacamudah:result", handleNewResult); // dikirim app.js saat hasil baru tampil
+  document.addEventListener("bacamudah:stale", handleStale); // dikirim app.js saat materi berubah
 })();

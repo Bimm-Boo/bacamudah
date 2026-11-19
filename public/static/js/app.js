@@ -4,6 +4,7 @@
 
   const REQUEST_TIMEOUT_MS = 90000; // 90 detik, termasuk saat server baru "bangun"
   const LABELED_MODES = ["analogi", "istilah"]; // mode yang barisnya berformat "Label: isi"
+  const MAX_SENTENCES_PER_PARAGRAPH = 3; // paragraf yang lebih panjang dipecah agar mudah dipindai
 
   const textInput = document.getElementById("input-text");
   const charCount = document.getElementById("char-count");
@@ -13,6 +14,8 @@
   const pdfInput = document.getElementById("pdf-file");
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
   const processButton = document.getElementById("process-btn");
+  const processHint = document.getElementById("process-hint");
+  const staleNotice = document.getElementById("result-stale");
   const resultHeading = document.getElementById("judul-hasil");
   const resultStatus = document.getElementById("result-status");
   const resultError = document.getElementById("result-error");
@@ -25,8 +28,11 @@
   const maxChars = Number(textInput.dataset.maxChars);
   const maxPdfMb = Number(pdfInput.dataset.maxMb); // batasnya ditentukan di app.py
   let isProcessing = false;
+  let activeSource = "teks"; // tab yang sedang terbuka: "teks" atau "pdf"
   let lastResult = ""; // teks hasil terakhir, dipakai tombol Salin dan Unduh
   let lastMode = "";
+  let lastSourceText = ""; // materi yang menghasilkan hasil terakhir
+  let isStale = false; // true jika materi atau sumbernya sudah berubah sejak hasil terakhir
 
   function formatNumber(value) {
     return value.toLocaleString("id-ID");
@@ -57,7 +63,38 @@
       ? "Teks terlalu panjang. Hapus " + formatNumber(length - maxChars) + " karakter agar bisa diproses."
       : "";
 
-    processButton.disabled = isProcessing || isOverLimit || textInput.value.trim() === "";
+    const isEmpty = textInput.value.trim() === "";
+    const onPdfTab = activeSource === "pdf";
+    // Di tab PDF, tombol Proses menunggu PDF dipilih; teks di tab lain tidak ikut diproses.
+    processButton.disabled = isProcessing || onPdfTab || isOverLimit || isEmpty;
+    processHint.textContent = processHintText(onPdfTab, isEmpty, isOverLimit);
+    processHint.hidden = processHint.textContent === "";
+    updateStaleState();
+  }
+
+  // Penjelasan di bawah tombol Proses saat tombol belum bisa ditekan.
+  function processHintText(onPdfTab, isEmpty, isOverLimit) {
+    if (isProcessing) return "";
+    if (onPdfTab) return "Pilih file PDF dulu. Teksnya akan muncul di kolom teks untuk dicek sebelum diproses.";
+    if (isEmpty) return "Tempel materi dulu, atau tekan Coba contoh materi.";
+    if (isOverLimit) return "Persingkat teksnya dulu agar bisa diproses.";
+    return "";
+  }
+
+  // ----- Hasil lama: tandai jika materi atau sumbernya sudah berubah -----
+  function updateStaleState() {
+    const stale = lastResult !== "" &&
+      (activeSource !== "teks" || textInput.value.trim() !== lastSourceText);
+    if (stale === isStale) return;
+    isStale = stale;
+    // Teks diisi saat muncul agar diumumkan pembaca layar (role="status").
+    staleNotice.textContent = stale
+      ? "Materi sudah berubah. Hasil di bawah masih dari materi sebelumnya. Tekan Proses untuk membuat hasil baru."
+      : "";
+    resultOutput.classList.toggle("is-stale", stale);
+    if (stale && !isProcessing) resultStatus.textContent = "";
+    // quiz.js menutup kuis lama dan menonaktifkan tombol Buat Kuis selama hasil sudah lama.
+    document.dispatchEvent(new CustomEvent("bacamudah:stale", { detail: { stale: stale } }));
   }
 
   // ----- Tab Teks / PDF (bisa dengan klik atau tombol panah) -----
@@ -68,6 +105,10 @@
       tab.tabIndex = isSelected ? 0 : -1;
       document.getElementById(tab.getAttribute("aria-controls")).hidden = !isSelected;
     });
+    const source = selectedTab.id === "tab-pdf" ? "pdf" : "teks";
+    if (source !== activeSource) hideInputMessage(); // pesan lama milik sumber sebelumnya
+    activeSource = source;
+    updateInputState();
   }
 
   function handleTabKeydown(event) {
@@ -171,24 +212,57 @@
     return line.match(/\S.*?(?:[.!?]+["”’')\]]*(?=\s|$)|$)/g) || [line];
   }
 
+  // AI menandai istilah penting dengan **istilah**. Tanda itu dibuang untuk Salin/Unduh.
+  function plainText(text) {
+    return text.replace(/\*\*/g, "");
+  }
+
+  // Teks di antara ** ditebalkan sebagai istilah penting (dibuat dengan DOM, bukan innerHTML).
+  function appendRichText(parent, text) {
+    text.split(/\*\*([^*]+)\*\*/).forEach(function (part, index) {
+      const clean = plainText(part); // buang sisa tanda yang tidak berpasangan
+      if (!clean) return;
+      if (index % 2 === 1) {
+        const term = document.createElement("strong");
+        term.className = "key-term";
+        term.textContent = clean;
+        parent.append(term);
+      } else {
+        parent.append(clean);
+      }
+    });
+  }
+
   // Tiap kalimat dibungkus <span class="sentence"> agar bisa disorot saat dibacakan.
-  function createLine(tagName, line, useLabel) {
+  function createLine(tagName, sentences, useLabel) {
     const element = document.createElement(tagName);
-    splitSentences(line).forEach(function (sentence, index) {
+    sentences.forEach(function (sentence, index) {
       const span = document.createElement("span");
       span.className = "sentence";
       const match = useLabel && index === 0 ? sentence.match(/^([^:]{1,60}):\s+(.+)$/) : null;
       if (match) {
         const label = document.createElement("strong");
-        label.textContent = match[1] + ":";
-        span.append(label, " " + match[2]);
+        label.textContent = plainText(match[1]) + ":";
+        span.append(label, " ");
+        appendRichText(span, match[2]);
       } else {
-        span.textContent = sentence;
+        appendRichText(span, sentence);
       }
       if (index > 0) element.append(" ");
       element.append(span);
     });
     return element;
+  }
+
+  // Paragraf panjang dipecah per beberapa kalimat agar mudah dipindai.
+  function createParagraphs(line, useLabel) {
+    const sentences = splitSentences(line);
+    const paragraphs = [];
+    for (let start = 0; start < sentences.length; start += MAX_SENTENCES_PER_PARAGRAPH) {
+      const group = sentences.slice(start, start + MAX_SENTENCES_PER_PARAGRAPH);
+      paragraphs.push(createLine("p", group, useLabel && start === 0));
+    }
+    return paragraphs;
   }
 
   function renderResult(text, mode) {
@@ -209,10 +283,10 @@
             list = document.createElement("ul");
             block.append(list);
           }
-          list.append(createLine("li", line.slice(2), useLabel));
+          list.append(createLine("li", splitSentences(line.slice(2)), useLabel));
         } else {
           list = null;
-          block.append(createLine("p", line, useLabel));
+          block.append(...createParagraphs(line, useLabel));
         }
       });
       resultOutput.append(block);
@@ -246,9 +320,10 @@
   async function processText() {
     const text = textInput.value.trim();
     const mode = document.querySelector('input[name="mode"]:checked').value;
-    if (!text || isProcessing) return;
+    if (!text || isProcessing || activeSource !== "teks") return;
 
     setProcessing(true);
+    hideInputMessage(); // pesan seperti "...lalu tekan Proses" sudah tidak relevan
     document.dispatchEvent(new CustomEvent("bacamudah:processing")); // tts.js berhenti membaca
     resultError.hidden = true;
     showLoading(resultStatus, "Sedang memproses materi. Biasanya kurang dari 15 detik.");
@@ -263,6 +338,7 @@
       renderResult(data.result, mode);
       lastResult = data.result;
       lastMode = mode;
+      lastSourceText = text;
       copyButton.disabled = false;
       downloadButton.disabled = false;
       // Kabari tts.js (menyiapkan kalimat baru) dan quiz.js (menyimpan materi untuk kuis).
@@ -282,7 +358,7 @@
   // ----- Salin dan unduh hasil -----
   async function copyResult() {
     try {
-      await navigator.clipboard.writeText(lastResult);
+      await navigator.clipboard.writeText(plainText(lastResult));
       resultStatus.textContent = "Hasil sudah disalin.";
     } catch (error) {
       resultStatus.textContent = "Tidak bisa menyalin otomatis. Blok teks hasilnya, lalu salin secara manual.";
@@ -291,7 +367,7 @@
 
   function downloadResult() {
     // Baris baru gaya Windows (CRLF) agar rapi juga saat dibuka di Notepad.
-    const content = lastResult.replace(/\n/g, "\r\n") + "\r\n";
+    const content = plainText(lastResult).replace(/\n/g, "\r\n") + "\r\n";
     const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
     const link = document.createElement("a");
     link.href = url;

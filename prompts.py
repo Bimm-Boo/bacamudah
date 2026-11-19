@@ -23,12 +23,13 @@ Aturan:
 - Setiap kalimat harus tetap benar menurut materi asli. Jangan mengubah siapa melakukan apa, dan jangan menambah fakta baru.
 - Buat paragraf pendek, 2 sampai 3 kalimat per paragraf.
 - Pisahkan setiap paragraf dengan satu baris kosong.
-- Tulis teks biasa saja, tanpa judul dan tanpa simbol markdown.
+- Di setiap paragraf, tebalkan 1 sampai 2 istilah atau konsep terpenting dengan mengapitnya memakai dua bintang, misalnya **penguapan**. Tebalkan kata atau frasa pendek saja, jangan kalimat utuh.
+- Selain tanda tebal itu, tulis teks biasa tanpa judul dan tanpa simbol markdown lain.
 
 Contoh format:
-[kalimat pendek]. [kalimat pendek].
+[kalimat pendek dengan **istilah penting**]. [kalimat pendek].
 
-[kalimat pendek]. [kalimat pendek]. [kalimat pendek].""",
+[kalimat pendek]. [kalimat pendek dengan **konsep utama**]. [kalimat pendek].""",
 
     "poin": """Ringkas materi di bawah ini menjadi 5 sampai 10 poin utama.
 
@@ -36,14 +37,15 @@ Aturan:
 - Setiap poin hanya satu kalimat singkat, paling banyak sekitar 15 kata.
 - Urutkan poin sesuai alur materi.
 - Awali setiap poin dengan tanda "- " dan tulis satu poin per baris.
+- Di setiap poin, tebalkan satu kata kunci terpenting dengan mengapitnya memakai dua bintang, misalnya **penguapan**.
 - Tulis daftar poinnya saja, tanpa judul, pembuka, atau penutup.
 - Jangan menambah fakta yang tidak ada di materi.
 - Jika materi terlalu pendek untuk 5 poin, tulis poin sebanyak isi yang ada saja.
 
 Contoh format:
-- [poin pertama].
-- [poin kedua].
-- [poin ketiga].""",
+- [poin pertama dengan **kata kunci**].
+- [poin kedua dengan **kata kunci**].
+- [poin ketiga dengan **kata kunci**].""",
 
     "analogi": """Jelaskan konsep utama dari materi di bawah ini dengan perumpamaan (analogi) dari kehidupan sehari-hari pelajar Indonesia, misalnya di rumah, sekolah, pasar, atau dapur.
 

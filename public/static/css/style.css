@@ -253,8 +253,8 @@ a {
 /* ===== Maskot (ilustrasi, warnanya tetap di semua tema) ===== */
 .mascot {
   flex: none;
-  width: 72px;
-  height: 72px;
+  width: 52px;
+  height: 52px;
 }
 
 .mascot-book {
@@ -407,13 +407,14 @@ a {
 }
 
 /* ===== Hero dan sapaan maskot ===== */
+/* Di HP pembuka dibuat ringkas agar langkah 1 cepat terlihat */
 .hero {
-  padding: 28px 0 4px;
+  padding: 18px 0 0;
 }
 
 .hero h1 {
-  margin: 0 0 16px;
-  font-size: 1.8rem;
+  margin: 0 0 10px;
+  font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.01em;
 }
@@ -434,8 +435,8 @@ a {
   position: relative;
   flex: 1;
   min-width: 0;
-  margin: 0 0 12px;
-  padding: 12px 16px;
+  margin: 0 0 6px;
+  padding: 10px 14px;
   border: 2px solid var(--border);
   border-radius: 18px;
   box-shadow: 0 3px 0 var(--border-edge);
@@ -586,6 +587,11 @@ h2 {
   min-height: 58px;
   margin-top: 18px;
   font-size: 1.15rem;
+}
+
+.process-hint {
+  margin: 8px 0 0;
+  text-align: center;
 }
 
 /* ===== Tab Teks / PDF: sakelar berbentuk pil ===== */
@@ -843,6 +849,18 @@ input[type="file"]::file-selector-button {
 .message-error {
   background: var(--error-soft);
   color: var(--error);
+}
+
+/* Peringatan hasil lama; kosong = tidak tampil */
+.message-warning {
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.message-warning:empty {
+  display: none;
 }
 
 .message-error p {
@@ -1188,6 +1206,12 @@ html[data-ruler="on"] .reading-ruler {
   background: var(--input-bg);
 }
 
+/* Hasil dari materi sebelumnya: garis putus-putus sebagai penanda tambahan */
+.result-output.is-stale {
+  border-style: dashed;
+  border-color: var(--accent-edge);
+}
+
 .result-output .placeholder {
   margin: 0;
   color: var(--muted);
@@ -1216,6 +1240,16 @@ html[data-ruler="on"] .reading-ruler {
 
 .result-block li::marker {
   color: var(--primary);
+}
+
+/* Istilah penting yang ditandai AI: tebal dan berwarna (tidak hanya warna) */
+.key-term {
+  color: var(--primary-strong);
+  font-weight: 700;
+}
+
+.sentence.is-speaking .key-term {
+  color: inherit; /* di atas sorot kuning, pakai warna teks sorot agar kontras */
 }
 
 /* ===== Kuis ===== */

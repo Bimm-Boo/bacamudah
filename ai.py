@@ -140,10 +140,16 @@ def _generate(prompt, temperature, **config_options):
 
 # ----- Mengolah materi (4 mode) -----
 def clean_output(text):
-    """Rapikan jawaban AI: buang simbol markdown dan samakan tanda poin."""
+    """Rapikan jawaban AI: buang simbol markdown dan samakan tanda poin.
+
+    Tanda **istilah** dipertahankan karena dipakai untuk menebalkan istilah penting,
+    kecuali jika tandanya tidak berpasangan dalam satu baris.
+    """
     lines = []
     for line in text.strip().splitlines():
-        line = line.replace("**", "").replace("__", "")
+        line = line.replace("__", "")
+        if line.count("**") % 2:
+            line = line.replace("**", "")
         line = re.sub(r"^\s*#+\s*", "", line)  # judul markdown "# ..."
         line = re.sub(r"^\s*[*•]\s+", "- ", line)  # poin "*" atau "•" menjadi "- "
         lines.append(line.rstrip())
