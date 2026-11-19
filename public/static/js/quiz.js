@@ -119,6 +119,7 @@
     panel.append(feedback);
 
     body.replaceChildren(progress, question, options, panel);
+    window.BacaMudahSettings.addBionicMarks(body);
     setProgress(current);
     question.focus();
   }
@@ -158,6 +159,7 @@
     const panel = body.querySelector(".quiz-panel");
     panel.classList.add(isCorrect ? "is-correct" : "is-wrong");
     panel.querySelector(".quiz-feedback").append(...feedbackItems);
+    window.BacaMudahSettings.addBionicMarks(panel);
     setProgress(current + 1);
 
     // Tombol lanjut berada di luar area aria-live agar tidak ikut dibacakan dua kali.
@@ -199,7 +201,12 @@
       createButton("btn btn-primary", "Ulangi kuis", startQuiz)
     );
     body.replaceChildren(result);
+    window.BacaMudahSettings.addBionicMarks(result);
     title.focus();
+    // history.js menyimpan skor ini bersama materi di riwayat.
+    document.dispatchEvent(new CustomEvent("bacamudah:quizdone", {
+      detail: { score: score, total: questions.length },
+    }));
   }
 
   // Buang kuis yang sedang tampil, termasuk permintaan kuis yang belum selesai.

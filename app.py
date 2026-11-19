@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.exceptions import HTTPException
 
-from ai import AIError, generate_quiz, process_text
+from ai import AIError, define_term, generate_quiz, process_text
 from pdf_utils import PdfError, extract_text
 from prompts import MODES
 from rate_limit import RateLimiter
@@ -23,6 +23,10 @@ MAX_TEXT_LABEL = f"{MAX_TEXT_CHARS:,}".replace(",", ".")  # "15.000" (format Ind
 MAX_PDF_MB = 4
 MAX_PDF_BYTES = MAX_PDF_MB * 1024 * 1024
 SAMPLE_TEXT = (Path(__file__).parent / "sample" / "contoh.txt").read_text(encoding="utf-8")
+# Kamus kontekstual: istilah pendek (maksimal 5 kata) dan satu kalimat konteks.
+MAX_TERM_CHARS = 60
+MAX_TERM_WORDS = 5
+MAX_CONTEXT_CHARS = 600
 # Rate limit: tiap IP boleh 20 permintaan API per menit, agar kuota AI aman.
 RATE_LIMIT_REQUESTS = 20
 RATE_LIMIT_WINDOW_SECONDS = 60
@@ -187,6 +191,27 @@ def api_quiz():
     except AIError as error:
         return error_response(error.message, error.status_code)
     return jsonify({"questions": questions})
+
+
+@app.post("/api/define")
+def api_define():
+    payload = read_json_payload()
+    term = payload.get("term")
+    context = payload.get("context") or ""
+    if not isinstance(term, str) or not term.strip():
+        return error_response("Pilih kata yang ingin dicari artinya.", 400)
+    term = " ".join(term.split())
+    if len(term) > MAX_TERM_CHARS or len(term.split()) > MAX_TERM_WORDS:
+        return error_response(f"Pilih kata atau istilah pendek saja (maksimal {MAX_TERM_WORDS} kata).", 400)
+    if not isinstance(context, str):
+        context = ""
+    context = " ".join(context.split())[:MAX_CONTEXT_CHARS]
+
+    try:
+        definition = define_term(term, context)
+    except AIError as error:
+        return error_response(error.message, error.status_code)
+    return jsonify({"term": term, "definition": definition})
 
 
 @app.errorhandler(HTTPException)

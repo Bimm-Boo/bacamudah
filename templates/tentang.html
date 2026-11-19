@@ -47,9 +47,11 @@
     <li>Tempel teks materi, unggah PDF, atau tekan <strong>Coba contoh materi</strong>.</li>
     <li>Pilih cara penyajian: Teks Sederhana, Poin-Poin, Analogi, atau Istilah Sulit.</li>
     <li>Tekan <strong>Proses</strong> dan tunggu beberapa detik.</li>
-    <li>Tekan <strong>Atur tampilan</strong> untuk memilih huruf, ukuran, jarak, warna latar, dan penggaris baca. Pilihanmu tetap tersimpan saat halaman dibuka lagi.</li>
+    <li>Tekan <strong>Atur tampilan</strong> di bagian atas untuk memilih huruf, ukuran, jarak, warna latar, penggaris baca, dan Bionic Reading (huruf awal setiap kata ditebalkan). Pilihanmu tetap tersimpan saat halaman dibuka lagi.</li>
     <li>Tekan <strong>Dengarkan</strong> untuk mendengar hasilnya. Kalimat yang sedang dibacakan akan disorot.</li>
-    <li>Tekan <strong>Salin</strong> atau <strong>Unduh .txt</strong> untuk menyimpan hasil, lalu <strong>Buat Kuis</strong> untuk menguji pemahamanmu.</li>
+    <li>Ketuk istilah bergaris putus-putus, atau blok kata lain di hasil, untuk melihat artinya tanpa pindah halaman.</li>
+    <li>Tekan <strong>Salin</strong>, <strong>Unduh .txt</strong>, atau <strong>Unduh PDF</strong> untuk menyimpan hasil. PDF memakai huruf, ukuran, dan warna latar pilihanmu. Lalu tekan <strong>Buat Kuis</strong> untuk menguji pemahamanmu.</li>
+    <li>Materi yang pernah diproses tersimpan di <strong>Riwayat materi</strong>, jadi bisa dibuka lagi tanpa menunggu AI.</li>
   </ol>
   <p>Semua fitur bisa dipakai dengan keyboard: <kbd>Tab</kbd> untuk berpindah, <kbd>Enter</kbd> atau <kbd>Spasi</kbd> untuk memilih, dan tombol panah untuk pilihan dalam satu kelompok.</p>
 </section>
@@ -57,7 +59,7 @@
 <section class="card about reading-text" aria-labelledby="judul-ai">
   <h2 id="judul-ai">Penggunaan AI</h2>
   <ul>
-    <li>Fitur penyederhanaan materi dan kuis memakai <strong>Gemini API</strong> dari Google.</li>
+    <li>Fitur penyederhanaan materi, kamus kontekstual, dan kuis memakai <strong>Gemini API</strong> dari Google.</li>
     <li>AI diminta memakai bahasa Indonesia yang sederhana dan tidak menambah informasi di luar materi asli. Materimu diberi tanda batas khusus agar AI memperlakukannya sebagai bahan bacaan, bukan sebagai perintah.</li>
     <li>Soal kuis diperiksa dulu oleh server (jumlah soal, pilihan jawaban, dan kunci jawaban) sebelum ditampilkan.</li>
     <li><strong>AI tetap bisa keliru.</strong> Bandingkan hasilnya dengan materi asli, terutama untuk angka, nama, dan definisi penting.</li>
@@ -71,7 +73,7 @@
     <li>BacaMudah tidak memakai akun dan <strong>tidak menyimpan materimu</strong> di server. Materi hanya diproses, lalu dibuang.</li>
     <li>Agar bisa diolah, materi dikirim ke Gemini API milik Google. BacaMudah memakai Gemini versi gratis, sehingga Google dapat memakai materi tersebut untuk meningkatkan layanannya, dan petugas Google dapat membacanya.</li>
     <li>Karena itu, <strong>jangan masukkan data pribadi atau rahasia</strong>, misalnya nama lengkap, alamat, nomor telepon, atau nilai rapor.</li>
-    <li>Pengaturan tampilan hanya disimpan di browser kamu sendiri, bukan di server.</li>
+    <li>Pengaturan tampilan dan riwayat materi (lima materi terakhir beserta hasil dan skor kuisnya) hanya disimpan di browser kamu sendiri, bukan di server. Riwayat bisa dihapus kapan saja lewat tombol <strong>Hapus</strong> atau <strong>Hapus semua riwayat</strong>. Jika memakai komputer bersama, hapus riwayatmu setelah selesai.</li>
   </ul>
 </section>
 
@@ -91,6 +93,7 @@
     <li>Server: Python dan Flask. Pembaca PDF: pypdf.</li>
     <li>AI: Gemini API melalui library google-genai.</li>
     <li>Tampilan: HTML, CSS, dan JavaScript tanpa framework.</li>
+    <li>Ekspor PDF: jsPDF (lisensi MIT), dibuat langsung di browser.</li>
     <li>Baca nyaring: Web Speech API bawaan browser.</li>
     <li>Huruf: Lexend dan OpenDyslexic, keduanya berlisensi SIL Open Font License 1.1.</li>
     <li>Hosting: Vercel.</li>

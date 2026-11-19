@@ -24,6 +24,7 @@
   const resultOutput = document.getElementById("result-output");
   const copyButton = document.getElementById("copy-btn");
   const downloadButton = document.getElementById("download-btn");
+  const pdfButton = document.getElementById("pdf-btn");
 
   const maxChars = Number(textInput.dataset.maxChars);
   const maxPdfMb = Number(pdfInput.dataset.maxMb); // batasnya ditentukan di app.py
@@ -218,14 +219,17 @@
   }
 
   // Teks di antara ** ditebalkan sebagai istilah penting (dibuat dengan DOM, bukan innerHTML).
+  // Istilah berupa tombol: diketuk untuk melihat artinya (dictionary.js).
   function appendRichText(parent, text) {
     text.split(/\*\*([^*]+)\*\*/).forEach(function (part, index) {
       const clean = plainText(part); // buang sisa tanda yang tidak berpasangan
       if (!clean) return;
       if (index % 2 === 1) {
-        const term = document.createElement("strong");
+        const term = document.createElement("button");
+        term.type = "button";
         term.className = "key-term";
         term.textContent = clean;
+        term.setAttribute("aria-haspopup", "dialog");
         parent.append(term);
       } else {
         parent.append(clean);
@@ -291,6 +295,38 @@
       });
       resultOutput.append(block);
     });
+    window.BacaMudahSettings.addBionicMarks(resultOutput);
+  }
+
+  // Tampilkan hasil dan kabari file lain (tts.js, quiz.js, history.js).
+  function showResult(text, mode, sourceText, restoredId) {
+    renderResult(text, mode);
+    lastResult = text;
+    lastMode = mode;
+    lastSourceText = sourceText;
+    copyButton.disabled = false;
+    downloadButton.disabled = false;
+    pdfButton.disabled = false;
+    document.dispatchEvent(new CustomEvent("bacamudah:result", {
+      detail: { sourceText: sourceText, mode: mode, result: text, restoredId: restoredId || null },
+    }));
+  }
+
+  // Buka kembali hasil dari riwayat tanpa memanggil AI lagi.
+  function openStoredResult(entry) {
+    if (isProcessing) return;
+    document.dispatchEvent(new CustomEvent("bacamudah:processing")); // hentikan baca nyaring
+    selectTab(tabs[0]);
+    textInput.value = entry.source;
+    const modeInput = document.querySelector('input[name="mode"][value="' + entry.mode + '"]');
+    if (modeInput) modeInput.checked = true;
+    hideInputMessage();
+    resultError.hidden = true;
+    showResult(entry.result, entry.mode, entry.source, entry.id);
+    updateInputState();
+    resultStatus.textContent = "Hasil dari riwayat sudah dibuka.";
+    scrollToElement(resultHeading);
+    resultHeading.focus({ preventScroll: true });
   }
 
   // ----- Proses AI -----
@@ -335,14 +371,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text, mode: mode }),
       });
-      renderResult(data.result, mode);
-      lastResult = data.result;
-      lastMode = mode;
-      lastSourceText = text;
-      copyButton.disabled = false;
-      downloadButton.disabled = false;
-      // Kabari tts.js (menyiapkan kalimat baru) dan quiz.js (menyimpan materi untuk kuis).
-      document.dispatchEvent(new CustomEvent("bacamudah:result", { detail: { sourceText: text } }));
+      showResult(data.result, mode, text, null);
       resultStatus.textContent = "Hasil sudah siap.";
       resultHeading.focus({ preventScroll: true });
     } catch (error) {
@@ -395,11 +424,15 @@
   copyButton.addEventListener("click", copyResult);
   downloadButton.addEventListener("click", downloadResult);
 
-  // Fungsi yang juga dipakai file lain (quiz.js).
+  // Fungsi yang juga dipakai file lain (quiz.js, dictionary.js, history.js, pdf-export.js).
   window.BacaMudah = {
     requestJson: requestJson,
     showLoading: showLoading,
     scrollToElement: scrollToElement,
+    openStoredResult: openStoredResult,
+    currentResult: function () {
+      return { result: lastResult, mode: lastMode };
+    },
   };
 
   updateInputState();

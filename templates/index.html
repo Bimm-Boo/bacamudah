@@ -122,6 +122,8 @@
   {# Muncul jika materi atau sumbernya berubah setelah hasil tampil (diisi app.js). #}
   <p id="result-stale" class="message message-warning" role="status"></p>
 
+  <p id="dict-hint" class="hint dict-hint" hidden>Ketuk istilah bergaris putus-putus, atau blok kata lain, untuk melihat artinya.</p>
+
   <div id="result-output" class="result-output reading-text">
     <p class="placeholder">Hasil akan muncul di sini setelah kamu menekan tombol Proses.</p>
   </div>
@@ -135,6 +137,10 @@
     <button type="button" id="download-btn" class="btn btn-secondary" disabled>
       <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
       Unduh .txt
+    </button>
+    <button type="button" id="pdf-btn" class="btn btn-secondary" disabled>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13.5h6M9 17h4"/></svg>
+      Unduh PDF
     </button>
     <button type="button" id="quiz-btn" class="btn btn-accent" disabled>
       <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.5-1.2 1-1.2 1.9"/><path d="M12 17h.01"/></svg>
@@ -157,7 +163,32 @@
   <div id="quiz-body" class="reading-text"></div>
 </section>
 </div>
+
+{# Riwayat: di HP tampil paling bawah, di desktop di bawah kolom kiri. Isinya dibuat oleh history.js. #}
+<section class="card history-card" id="history-section" aria-labelledby="judul-riwayat">
+  <h2 id="judul-riwayat" tabindex="-1">
+    <span class="step" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>
+    Riwayat materi
+  </h2>
+  <p class="hint">Lima materi terakhir tersimpan otomatis di browser ini saja, beserta hasil dan skor kuisnya.</p>
+  <p id="history-empty" class="history-empty">Belum ada riwayat. Materi yang kamu proses akan muncul di sini.</p>
+  <ul id="history-list" class="history-list"></ul>
+  <p id="history-note" class="hint" hidden>Browser ini tidak mengizinkan penyimpanan, jadi riwayat hilang saat halaman ditutup.</p>
+  <button type="button" id="history-clear" class="btn btn-secondary btn-small" hidden>Hapus semua riwayat</button>
+  <p id="history-status" class="visually-hidden" role="status"></p>
+</section>
 </div>
+
+{# Kamus kontekstual: popover arti kata, dan tombol untuk kata yang diblok (dictionary.js). #}
+<div id="dict-popover" class="dict-popover" role="dialog" aria-labelledby="dict-term" tabindex="-1" hidden>
+  <div class="dict-head">
+    <p id="dict-term" class="dict-term"></p>
+    <button type="button" id="dict-close" class="btn btn-secondary btn-small">Tutup</button>
+  </div>
+  <p id="dict-body" class="dict-body reading-text" aria-live="polite"></p>
+  <p class="dict-note">Arti dari AI. Cocokkan juga dengan materi aslinya.</p>
+</div>
+<button type="button" id="dict-select-btn" class="btn btn-accent btn-small dict-select" hidden>Apa artinya?</button>
 
 <script id="sample-data" type="application/json">{{ sample_text|tojson }}</script>
 {% endblock %}
@@ -166,4 +197,7 @@
 <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/tts.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/quiz.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/dictionary.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/history.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/pdf-export.js') }}" defer></script>
 {% endblock %}

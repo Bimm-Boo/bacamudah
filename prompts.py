@@ -94,6 +94,17 @@ Aturan:
 Balas hanya dengan JSON berbentuk:
 {"questions": [{"question": "...", "options": ["...", "...", "...", "..."], "answer_index": 0, "explanation": "..."}]}"""
 
+DEFINE_PROMPT = """Jelaskan arti kata atau istilah di bawah ini untuk pelajar, sesuai kalimat tempat kata itu muncul.
+
+Aturan:
+- Tulis 1 sampai 2 kalimat pendek dengan kata sehari-hari.
+- Jika kata punya beberapa arti, pilih arti yang cocok dengan kalimatnya.
+- Jangan mengulang kalimatnya, dan jangan menambah fakta di luar arti kata.
+- Langsung tulis artinya, tanpa pembuka seperti "Arti kata ini adalah".
+- Tulis teks biasa tanpa simbol markdown.
+
+Materi berisi baris "Istilah:" (kata yang dicari) dan "Kalimat:" (tempat kata itu muncul)."""
+
 # Daftar mode yang sah, dipakai untuk validasi di app.py.
 MODES = tuple(MODE_PROMPTS)
 
@@ -113,3 +124,9 @@ def build_prompt(mode, text):
 def build_quiz_prompt(text):
     """Prompt untuk membuat kuis dari materi."""
     return _wrap_material(QUIZ_PROMPT, text)
+
+
+def build_define_prompt(term, context):
+    """Prompt untuk menjelaskan arti satu istilah sesuai kalimatnya."""
+    material = f"Istilah: {term}\nKalimat: {context or '-'}"
+    return _wrap_material(DEFINE_PROMPT, material)

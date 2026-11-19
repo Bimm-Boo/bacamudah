@@ -10,7 +10,7 @@ import time
 from google import genai
 from google.genai import errors, types
 
-from prompts import SYSTEM_INSTRUCTION, build_prompt, build_quiz_prompt
+from prompts import SYSTEM_INSTRUCTION, build_define_prompt, build_prompt, build_quiz_prompt
 
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
 REQUEST_TIMEOUT_MS = 60_000  # batas tunggu jawaban AI (60 detik)
@@ -161,6 +161,14 @@ def process_text(text, mode):
     """Olah materi sesuai mode, lalu kembalikan hasilnya sebagai teks."""
     # Suhu rendah agar hasil tetap setia pada materi.
     return clean_output(_generate(build_prompt(mode, text), temperature=0.3))
+
+
+# ----- Kamus kontekstual -----
+def define_term(term, context):
+    """Kembalikan arti singkat sebuah istilah sesuai kalimat tempat istilah itu muncul."""
+    raw = _generate(build_define_prompt(term, context), temperature=0.2, max_output_tokens=256)
+    # Cukup satu paragraf pendek tanpa tanda tebal.
+    return " ".join(clean_output(raw).replace("**", "").split())
 
 
 # ----- Kuis -----

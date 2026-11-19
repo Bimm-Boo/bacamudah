@@ -1136,6 +1136,148 @@ input[type="file"]::file-selector-button {
   box-decoration-break: clone;
 }
 
+/* ===== Kamus kontekstual ===== */
+.dict-hint {
+  margin: 4px 0 0;
+}
+
+.dict-popover {
+  position: absolute; /* posisinya diatur dictionary.js, di dekat kata yang dipilih */
+  z-index: 35;
+  width: min(360px, calc(100vw - 24px));
+  padding: 12px 16px 14px;
+  border: 2px solid var(--border);
+  border-bottom: 5px solid var(--border-edge);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 14px 34px rgba(15, 25, 30, 0.22);
+}
+
+.dict-popover:focus {
+  outline: none; /* yang perlu terlihat adalah tombol di dalamnya */
+}
+
+.dict-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.dict-term {
+  min-width: 0;
+  margin: 0;
+  color: var(--primary-strong);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.dict-body {
+  margin: 0 0 8px;
+}
+
+.dict-body .spinner {
+  display: inline-block;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.dict-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.dict-select {
+  position: absolute; /* muncul di bawah kata yang diblok */
+  z-index: 34;
+}
+
+/* ===== Riwayat materi ===== */
+.history-list {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  background: var(--input-bg);
+}
+
+.history-item.is-current {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.history-info {
+  flex: 1 1 14em;
+  min-width: 0;
+}
+
+.history-title {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.history-meta {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.history-badge {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.history-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.history-empty {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+#history-clear {
+  margin-top: 14px;
+}
+
+/* Disembunyikan dari layar, tetap dibacakan pembaca layar */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ===== Bionic Reading: huruf awal setiap kata ditebalkan (diatur settings.js) ===== */
+html[data-bionic="on"] .bionic-head {
+  font-weight: 700;
+}
+
 /* ===== Penggaris baca: pita sorot yang mengikuti kursor atau sentuhan ===== */
 .reading-ruler {
   display: none;
@@ -1242,10 +1384,30 @@ html[data-ruler="on"] .reading-ruler {
   color: var(--primary);
 }
 
-/* Istilah penting yang ditandai AI: tebal dan berwarna (tidak hanya warna) */
+/* Istilah penting yang ditandai AI: tebal, berwarna, dan bergaris putus-putus.
+   Berupa tombol: diketuk untuk melihat artinya (kamus kontekstual). */
 .key-term {
+  display: inline;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0.08em;
+  border: 0;
+  border-bottom: 2px dashed currentColor;
+  border-radius: 4px;
+  background: none;
   color: var(--primary-strong);
+  font: inherit;
   font-weight: 700;
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  white-space: normal;
+  cursor: help;
+}
+
+.key-term:hover {
+  background: var(--primary-soft);
 }
 
 .sentence.is-speaking .key-term {
@@ -1645,11 +1807,28 @@ kbd {
     margin-bottom: 14px;
   }
 
+  /* Kolom kiri: materi, lalu riwayat di bawahnya. Kolom kanan: hasil dan kuis. */
   .workspace {
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "input output"
+      "history output";
     align-items: start;
-    gap: 24px;
+    column-gap: 24px;
+  }
+
+  .workspace-col:first-child {
+    grid-area: input;
+  }
+
+  .workspace-col:nth-child(2) {
+    grid-area: output;
+  }
+
+  .history-card {
+    grid-area: history;
   }
 
   .workspace textarea {

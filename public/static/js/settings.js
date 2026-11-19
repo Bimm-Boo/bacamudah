@@ -11,7 +11,9 @@
     spacing: "normal",
     theme: "krem",
     ruler: false,
+    bionic: false, // Bionic Reading: huruf awal setiap kata ditebalkan
   };
+  const SWITCHES = ["ruler", "bionic"]; // pengaturan berbentuk sakelar (checkbox)
   const CHOICES = {
     font: ["lexend", "opendyslexic", "sans"],
     spacing: ["normal", "renggang", "sangat"],
@@ -36,7 +38,9 @@
         clean[key] = Math.min(RANGES[key][1], Math.max(RANGES[key][0], raw[key]));
       }
     });
-    clean.ruler = raw.ruler === true;
+    SWITCHES.forEach(function (key) {
+      clean[key] = raw[key] === true;
+    });
     return clean;
   }
 
@@ -63,8 +67,55 @@
     root.dataset.spacing = settings.spacing;
     root.dataset.theme = settings.theme;
     root.dataset.ruler = settings.ruler ? "on" : "off";
+    root.dataset.bionic = settings.bionic ? "on" : "off";
     root.style.setProperty("--read-size", settings.size / 16 + "rem");
     root.style.setProperty("--read-line", String(settings.lineHeight));
+  }
+
+  // ----- Bionic Reading -----
+  // Setiap kata dibungkus <span class="bionic-word"> dan huruf awalnya <span class="bionic-head">.
+  // Kata yang sudah dibungkus dilewati, jadi aman dipanggil berulang. Tebalnya diatur CSS
+  // lewat atribut data-bionic, jadi menyalakan/mematikan tidak perlu menggambar ulang teks.
+  // Isi teks tidak berubah, sehingga baca nyaring, salin, dan blok kata tetap normal.
+  const WORD_PATTERN = /\p{L}[\p{L}\p{M}]*/gu;
+
+  function bionicHeadLength(word) {
+    if (word.length <= 3) return 1;
+    if (word.length <= 6) return 2;
+    return 3;
+  }
+
+  function markTextNode(node) {
+    const text = node.textContent;
+    const fragment = document.createDocumentFragment();
+    let last = 0;
+    for (const match of text.matchAll(WORD_PATTERN)) {
+      const word = match[0];
+      const headLength = bionicHeadLength(word);
+      const wrapper = document.createElement("span");
+      wrapper.className = "bionic-word";
+      const head = document.createElement("span");
+      head.className = "bionic-head";
+      head.textContent = word.slice(0, headLength);
+      wrapper.append(head, word.slice(headLength));
+      fragment.append(text.slice(last, match.index), wrapper);
+      last = match.index + word.length;
+    }
+    fragment.append(text.slice(last));
+    node.replaceWith(fragment);
+  }
+
+  function addBionicMarks(container) {
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        const parent = node.parentElement;
+        if (!parent || parent.closest(".bionic-word, script, style")) return NodeFilter.FILTER_REJECT;
+        return /\p{L}/u.test(node.textContent) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      },
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(markTextNode);
   }
 
   // ----- Penggaris baca -----
@@ -98,7 +149,9 @@
       input.setAttribute("aria-valuetext", valueLabel);
       panel.querySelector('[data-value-for="' + key + '"]').textContent = valueLabel;
     });
-    panel.querySelector('input[name="ruler"]').checked = settings.ruler;
+    SWITCHES.forEach(function (key) {
+      panel.querySelector('input[name="' + key + '"]').checked = settings[key];
+    });
   }
 
   function commitSettings() {
@@ -165,7 +218,19 @@
 
     panel = document.getElementById("settings-panel");
     if (panel) setupPanel();
+
+    // Teks bacaan yang sudah ada sejak awal (contoh di panel, halaman Tentang).
+    document.querySelectorAll(".reading-text").forEach(addBionicMarks);
   }
+
+  // Dipakai file lain: app.js dan quiz.js (teks yang dibuat belakangan), pdf-export.js.
+  window.BacaMudahSettings = {
+    addBionicMarks: addBionicMarks,
+    bionicHeadLength: bionicHeadLength,
+    current: function () {
+      return Object.assign({}, settings);
+    },
+  };
 
   applySettings();
   document.addEventListener("DOMContentLoaded", init);
