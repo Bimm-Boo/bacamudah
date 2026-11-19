@@ -217,10 +217,9 @@ Lomba ini mewajibkan transparansi penggunaan AI. Berikut rinciannya.
 
 **Tim Sangatta Keren**
 
-| Nama | Peran |
-|---|---|
-| [Fadlan Iffat Inayat] | [Menanmbahkan fitur baru dan membuat flow dari jalannya web] |
 
+| Abhim Khafillah Agata | Ketua tim dan pengembang produk: menyusun PRD, mengarahkan pembuatan kode bersama Claude Code, memilih desain, mengatur deploy, dan menguji fitur. |
+| Fadlan Iffat Inayat | Pengujian dan dokumentasi: menguji website di HP, mengumpulkan masukan pengguna, menyusun README, proposal, dan video demo. |
 
 Yang dikerjakan tim:
 
