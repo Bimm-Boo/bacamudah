@@ -138,6 +138,11 @@
   // Hasil baru disimpan otomatis. Materi dan mode yang sama menggantikan simpanan lamanya.
   function handleResult(event) {
     const detail = event.detail;
+    if (detail.demo) {
+      currentId = null; // hasil demo tidak disimpan di riwayat
+      renderList();
+      return;
+    }
     if (detail.restoredId) {
       currentId = detail.restoredId;
       renderList();

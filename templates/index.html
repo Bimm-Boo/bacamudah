@@ -3,18 +3,37 @@
 {% block main_class %}container-wide{% endblock %}
 
 {% block content %}
-<section class="hero">
+<section class="hero hero-home">
   <h1>Materi belajar jadi lebih mudah dibaca.</h1>
   <div class="greeting">
     {% include "_maskot.html" %}
-    <p class="bubble">Hai! Tempel materimu, aku bantu bikin lebih mudah dipahami.</p>
+    <p class="bubble">Hai! Aku membantu siswa dengan <strong>disleksia</strong> atau <strong>kesulitan membaca</strong> memahami materi pelajaran.</p>
   </div>
+  <div class="hero-actions">
+    <button type="button" id="demo-btn" class="btn btn-accent btn-demo" aria-describedby="demo-btn-hint">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+      Coba demo
+    </button>
+    <p id="demo-btn-hint" class="hint">Satu klik: contoh materi langsung disederhanakan, lengkap dengan suara dan kuis.</p>
+  </div>
+  <ul class="feature-chips" aria-label="Fitur untuk pembaca dengan disleksia">
+    <li>Bahasa sederhana</li>
+    <li>Huruf ramah disleksia</li>
+    <li>Baca nyaring + sorot kalimat</li>
+    <li>Kamus istilah</li>
+    <li>Kuis pemahaman</li>
+  </ul>
 </section>
 
 <div class="workspace">
 <div class="workspace-col">
 <section class="card" aria-labelledby="judul-input">
   <h2 id="judul-input"><span class="step">1</span> Masukkan materi</h2>
+
+  <p class="privacy-note" id="privacy-note">
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>
+    <span><strong>Jaga privasi:</strong> jangan masukkan nama, nilai, atau data pribadi. Materi dikirim ke AI Gemini untuk diproses dan tidak disimpan di server BacaMudah. <a href="{{ url_for('tentang') }}#judul-privasi">Selengkapnya</a></span>
+  </p>
 
   <div class="tabs" role="tablist" aria-label="Cara memasukkan materi">
     <button type="button" class="tab" role="tab" id="tab-teks"
@@ -27,7 +46,7 @@
     <label class="field-label" for="input-text">Teks materi</label>
     <p class="hint" id="input-help">Tempel teks dari buku, modul, atau artikel. Maksimal {{ max_text_label }} karakter.</p>
     <textarea id="input-text" rows="10" data-max-chars="{{ max_text_chars }}"
-              aria-describedby="input-help char-count" spellcheck="false"></textarea>
+              aria-describedby="input-help privacy-note char-count" spellcheck="false"></textarea>
     <div class="input-meta">
       <span id="char-count" class="char-count">0 / {{ max_text_label }} karakter</span>
       <button type="button" id="sample-btn" class="btn btn-secondary">Coba contoh materi</button>
@@ -39,7 +58,7 @@
     <label class="field-label" for="pdf-file">Pilih file PDF</label>
     <p class="hint" id="pdf-help">Maksimal {{ max_pdf_mb }} MB. PDF harus berisi teks, bukan hasil scan atau foto.</p>
     <input type="file" id="pdf-file" accept="application/pdf,.pdf" data-max-mb="{{ max_pdf_mb }}"
-           aria-describedby="pdf-help">
+           aria-describedby="pdf-help privacy-note">
   </div>
 
   <p id="input-message" class="message" role="status" aria-live="polite" hidden></p>
@@ -89,6 +108,42 @@
 <div class="workspace-col">
 <section class="card" aria-labelledby="judul-hasil">
   <h2 id="judul-hasil" tabindex="-1"><span class="step">3</span> Hasil</h2>
+
+  {# Panduan demo: muncul setelah tombol "Coba demo" ditekan (demo.js). #}
+  <div id="demo-guide" class="demo-guide" role="region" aria-labelledby="demo-title" hidden>
+    <p id="demo-title" class="demo-title">Demo: sebelum dan sesudah</p>
+    <div class="compare">
+      <div class="compare-col">
+        <p class="compare-label">Sebelum (materi asli)</p>
+        <p id="demo-before" class="compare-text"></p>
+        <p id="demo-before-stat" class="compare-stat"></p>
+      </div>
+      <div class="compare-col compare-after">
+        <p class="compare-label">Sesudah (Teks Sederhana)</p>
+        <p id="demo-after" class="compare-text"></p>
+        <p id="demo-after-stat" class="compare-stat"></p>
+      </div>
+    </div>
+    <ol class="demo-steps">
+      <li class="is-done"><span class="demo-check" aria-hidden="true">✓</span>
+        <span class="demo-step-body">Contoh materi diisi</span></li>
+      <li class="is-done"><span class="demo-check" aria-hidden="true">✓</span>
+        <span class="demo-step-body">Materi disederhanakan</span></li>
+      <li id="demo-step-listen"><span class="demo-check" aria-hidden="true">3</span>
+        <span class="demo-step-body">
+          <button type="button" id="demo-listen" class="btn btn-primary btn-small">Dengarkan hasil</button>
+          sambil melihat sorotan kalimat
+        </span>
+      </li>
+      <li id="demo-step-quiz"><span class="demo-check" aria-hidden="true">4</span>
+        <span class="demo-step-body">
+          <button type="button" id="demo-quiz" class="btn btn-accent btn-small">Kerjakan kuis</button>
+          untuk mengecek pemahaman
+        </span>
+      </li>
+    </ol>
+    <p class="hint demo-note">Hasil dan kuis demo dibuat sebelumnya dengan AI Gemini dari contoh materi ini, agar langsung tampil. Untuk mencoba AI secara langsung, tempel materimu sendiri lalu tekan Proses.</p>
+  </div>
 
 
 
@@ -191,6 +246,7 @@
 <button type="button" id="dict-select-btn" class="btn btn-accent btn-small dict-select" hidden>Apa artinya?</button>
 
 <script id="sample-data" type="application/json">{{ sample_text|tojson }}</script>
+<script id="demo-data" type="application/json">{{ demo_data|tojson }}</script>
 {% endblock %}
 
 {% block scripts %}
@@ -200,4 +256,5 @@
 <script src="{{ url_for('static', filename='js/dictionary.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/history.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/pdf-export.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/demo.js') }}" defer></script>
 {% endblock %}

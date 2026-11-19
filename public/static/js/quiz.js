@@ -14,6 +14,7 @@
   const body = document.getElementById("quiz-body");
 
   let sourceText = ""; // materi dari hasil yang sedang tampil
+  let preparedQuestions = null; // soal demo yang sudah disiapkan, jadi tidak perlu memanggil AI
   let questions = [];
   let current = 0; // indeks soal yang sedang tampil
   let score = 0;
@@ -37,6 +38,15 @@
   // ----- Meminta kuis ke server -----
   async function loadQuiz() {
     if (isLoading || !sourceText) return;
+    if (preparedQuestions) {
+      section.hidden = false;
+      errorBox.hidden = true;
+      status.textContent = "";
+      questions = preparedQuestions;
+      startQuiz();
+      window.BacaMudah.scrollToElement(heading);
+      return;
+    }
     requestId += 1;
     const myRequest = requestId;
 
@@ -222,6 +232,7 @@
   // Hasil baru berarti materinya berganti: simpan materinya dan buang kuis lama.
   function handleNewResult(event) {
     sourceText = event.detail.sourceText;
+    preparedQuestions = event.detail.demoQuiz;
     resetQuiz();
     quizButton.disabled = false;
   }

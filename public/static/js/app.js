@@ -298,8 +298,10 @@
     window.BacaMudahSettings.addBionicMarks(resultOutput);
   }
 
-  // Tampilkan hasil dan kabari file lain (tts.js, quiz.js, history.js).
-  function showResult(text, mode, sourceText, restoredId) {
+  // Tampilkan hasil dan kabari file lain (tts.js, quiz.js, history.js, demo.js).
+  // options: restoredId (dibuka dari riwayat), demo (hasil demo), demoQuiz (soal demo siap pakai).
+  function showResult(text, mode, sourceText, options) {
+    const extra = options || {};
     renderResult(text, mode);
     lastResult = text;
     lastMode = mode;
@@ -308,12 +310,20 @@
     downloadButton.disabled = false;
     pdfButton.disabled = false;
     document.dispatchEvent(new CustomEvent("bacamudah:result", {
-      detail: { sourceText: sourceText, mode: mode, result: text, restoredId: restoredId || null },
+      detail: {
+        sourceText: sourceText,
+        mode: mode,
+        result: text,
+        restoredId: extra.restoredId || null,
+        demo: Boolean(extra.demo),
+        demoQuiz: extra.demoQuiz || null,
+      },
     }));
   }
 
-  // Buka kembali hasil dari riwayat tanpa memanggil AI lagi.
-  function openStoredResult(entry) {
+  // Buka hasil yang sudah ada (dari riwayat atau demo) tanpa memanggil AI lagi.
+  function openStoredResult(entry, options) {
+    const extra = options || {};
     if (isProcessing) return;
     document.dispatchEvent(new CustomEvent("bacamudah:processing")); // hentikan baca nyaring
     selectTab(tabs[0]);
@@ -322,9 +332,13 @@
     if (modeInput) modeInput.checked = true;
     hideInputMessage();
     resultError.hidden = true;
-    showResult(entry.result, entry.mode, entry.source, entry.id);
+    showResult(entry.result, entry.mode, entry.source, {
+      restoredId: extra.demo ? null : entry.id,
+      demo: extra.demo,
+      demoQuiz: extra.demoQuiz,
+    });
     updateInputState();
-    resultStatus.textContent = "Hasil dari riwayat sudah dibuka.";
+    resultStatus.textContent = extra.statusText || "Hasil dari riwayat sudah dibuka.";
     scrollToElement(resultHeading);
     resultHeading.focus({ preventScroll: true });
   }
@@ -371,7 +385,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text, mode: mode }),
       });
-      showResult(data.result, mode, text, null);
+      showResult(data.result, mode, text);
       resultStatus.textContent = "Hasil sudah siap.";
       resultHeading.focus({ preventScroll: true });
     } catch (error) {

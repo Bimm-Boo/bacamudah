@@ -1,6 +1,7 @@
 """BacaMudah: aplikasi Flask (halaman dan endpoint API)."""
 
 import io
+import json
 import logging
 import os
 from pathlib import Path
@@ -22,7 +23,15 @@ MAX_TEXT_LABEL = f"{MAX_TEXT_CHARS:,}".replace(",", ".")  # "15.000" (format Ind
 # Vercel membatasi isi satu permintaan sebesar 4,5 MB, jadi batas PDF dibuat sedikit di bawahnya.
 MAX_PDF_MB = 4
 MAX_PDF_BYTES = MAX_PDF_MB * 1024 * 1024
-SAMPLE_TEXT = (Path(__file__).parent / "sample" / "contoh.txt").read_text(encoding="utf-8")
+SAMPLE_DIR = Path(__file__).parent / "sample"
+SAMPLE_TEXT = (SAMPLE_DIR / "contoh.txt").read_text(encoding="utf-8")
+# Demo satu klik: hasil "Teks Sederhana" dan kuis untuk contoh materi, dibuat sekali
+# dengan Gemini lalu disimpan, agar demo langsung tampil tanpa menunggu AI.
+DEMO_DATA = {
+    "result": (SAMPLE_DIR / "demo_hasil.txt").read_text(encoding="utf-8").strip(),
+    "mode": "sederhana",
+    "questions": json.loads((SAMPLE_DIR / "demo_kuis.json").read_text(encoding="utf-8"))["questions"],
+}
 # Kamus kontekstual: istilah pendek (maksimal 5 kata) dan satu kalimat konteks.
 MAX_TERM_CHARS = 60
 MAX_TERM_WORDS = 5
@@ -118,6 +127,7 @@ def index():
         max_text_label=MAX_TEXT_LABEL,
         max_pdf_mb=MAX_PDF_MB,
         sample_text=SAMPLE_TEXT,
+        demo_data=DEMO_DATA,
     )
 
 
