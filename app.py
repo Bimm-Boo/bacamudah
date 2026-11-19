@@ -114,7 +114,7 @@ def limit_api_requests():
         return None
     wait_seconds = api_limiter.check(client_ip())
     if wait_seconds:
-        message = f"Kamu mengirim terlalu banyak permintaan. Tunggu {wait_seconds} detik, lalu coba lagi."
+        message = f"Kamu mengirim terlalu banyak permintaan. tunggu {wait_seconds} detik, lalu coba lagi."
         return jsonify({"error": message}), 429, {"Retry-After": str(wait_seconds)}
     return None
 
