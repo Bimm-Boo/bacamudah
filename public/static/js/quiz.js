@@ -15,7 +15,10 @@
 
   let sourceText = ""; // materi dari hasil yang sedang tampil
   let preparedQuestions = null; // soal demo yang sudah disiapkan, jadi tidak perlu memanggil AI
-  let questions = [];
+  let allQuestions = []; // semua soal kuis untuk materi ini
+  let questions = []; // soal di putaran ini: semua soal, atau hanya yang tadi salah
+  let isReview = false; // true saat mengulang soal yang salah saja
+  let wrongQuestions = []; // soal yang dijawab salah di putaran ini
   let current = 0; // indeks soal yang sedang tampil
   let score = 0;
   let isLoading = false;
@@ -42,8 +45,8 @@
       section.hidden = false;
       errorBox.hidden = true;
       status.textContent = "";
-      questions = preparedQuestions;
-      startQuiz();
+      allQuestions = preparedQuestions;
+      startQuiz(allQuestions, false);
       window.BacaMudah.scrollToElement(heading);
       return;
     }
@@ -65,9 +68,9 @@
         body: JSON.stringify({ text: sourceText }),
       });
       if (myRequest !== requestId) return; // materi sudah diganti saat menunggu
-      questions = data.questions;
+      allQuestions = data.questions;
       status.textContent = "";
-      startQuiz();
+      startQuiz(allQuestions, false);
     } catch (error) {
       if (myRequest !== requestId) return;
       status.textContent = "";
@@ -83,7 +86,11 @@
   }
 
   // ----- Mengerjakan kuis -----
-  function startQuiz() {
+  // Mulai satu putaran. review = true berarti hanya mengulang soal yang tadi salah.
+  function startQuiz(list, review) {
+    questions = list;
+    isReview = review;
+    wrongQuestions = [];
     current = 0;
     score = 0;
     renderQuestion();
@@ -95,7 +102,8 @@
     const bar = createElement("div", "quiz-bar");
     bar.setAttribute("aria-hidden", "true"); // angka "Soal x dari y" sudah cukup untuk pembaca layar
     bar.append(createElement("span", "quiz-bar-fill"));
-    top.append(bar, createElement("p", "quiz-progress", "Soal " + (current + 1) + " dari " + questions.length));
+    const label = (isReview ? "Ulang soal " : "Soal ") + (current + 1) + " dari " + questions.length;
+    top.append(bar, createElement("p", "quiz-progress", label));
     return top;
   }
 
@@ -138,6 +146,7 @@
     const item = questions[current];
     const isCorrect = chosenIndex === item.answer_index;
     if (isCorrect) score += 1;
+    else wrongQuestions.push(item);
 
     // Kunci semua pilihan, lalu tandai yang benar dan (jika salah) yang dipilih.
     body.querySelectorAll(".quiz-option").forEach(function (button, index) {
@@ -189,9 +198,36 @@
   }
 
   function scoreMessage() {
-    if (score === questions.length) return "Hebat! Semua jawabanmu benar.";
+    const allCorrect = score === questions.length;
+    if (isReview) {
+      return allCorrect
+        ? "Hebat! Soal yang tadi salah sekarang sudah benar semua."
+        : "Masih ada yang belum tepat. Baca lagi penjelasannya, lalu coba sekali lagi.";
+    }
+    if (allCorrect) return "Hebat! Semua jawabanmu benar.";
     if (score * 2 >= questions.length) return "Bagus! Kamu sudah paham sebagian besar materinya.";
-    return "Tidak apa-apa. Coba baca lagi hasilnya, lalu ulangi kuisnya.";
+    return "Tidak apa-apa. Coba baca lagi hasilnya, lalu ulangi soal yang salah.";
+  }
+
+  // Jika ada yang salah, tawarkan mengulang soal itu saja. Selalu ada pilihan mengulang semua soal.
+  function createScoreActions() {
+    const actions = createElement("div", "toolbar quiz-result-actions");
+    const wrongList = wrongQuestions.slice();
+    if (wrongList.length > 0) {
+      actions.append(
+        createButton("btn btn-primary", "Ulangi " + wrongList.length + " soal yang salah", function () {
+          startQuiz(wrongList, true);
+        }),
+        createButton("btn btn-secondary", "Ulangi semua soal", function () {
+          startQuiz(allQuestions, false);
+        })
+      );
+    } else {
+      actions.append(createButton("btn btn-primary", "Ulangi kuis", function () {
+        startQuiz(allQuestions, false);
+      }));
+    }
+    return actions;
   }
 
   function showScore() {
@@ -200,7 +236,10 @@
     badge.setAttribute("aria-hidden", "true");
     badge.append(createElement("strong", "", String(score)), "dari " + questions.length);
 
-    const title = createElement("p", "quiz-score", "Skor kamu: " + score + " dari " + questions.length);
+    const titleText = isReview
+      ? "Hasil ulangan: " + score + " dari " + questions.length + " soal benar"
+      : "Skor kamu: " + score + " dari " + questions.length;
+    const title = createElement("p", "quiz-score", titleText);
     title.tabIndex = -1;
 
     const result = createElement("div", "quiz-result");
@@ -208,12 +247,14 @@
       badge,
       title,
       createElement("p", "quiz-explanation", scoreMessage()),
-      createButton("btn btn-primary", "Ulangi kuis", startQuiz)
+      createScoreActions()
     );
     body.replaceChildren(result);
     window.BacaMudahSettings.addBionicMarks(result);
     title.focus();
-    // history.js menyimpan skor ini bersama materi di riwayat.
+    // history.js menyimpan skor ini bersama materi di riwayat. Putaran ulangan tidak
+    // disimpan, karena skornya hanya dari sebagian soal.
+    if (isReview) return;
     document.dispatchEvent(new CustomEvent("bacamudah:quizdone", {
       detail: { score: score, total: questions.length },
     }));

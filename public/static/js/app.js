@@ -28,6 +28,8 @@
   const downloadButton = document.getElementById("download-btn");
   const pdfButton = document.getElementById("pdf-btn");
 
+  // Jenjang bawaan = pilihan yang dicentang di HTML (SMP). Dipakai untuk riwayat lama tanpa jenjang.
+  const defaultLevel = document.querySelector('input[name="level"]:checked').value;
   const maxChars = Number(textInput.dataset.maxChars);
   const maxPdfMb = Number(pdfInput.dataset.maxMb); // batasnya ditentukan di app.py
   let isProcessing = false;
@@ -314,8 +316,14 @@
     sourceCompare.hidden = false;
   }
 
+  function checkRadio(name, value) {
+    const input = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
+    if (input) input.checked = true;
+  }
+
   // Tampilkan hasil dan kabari file lain (tts.js, quiz.js, history.js, demo.js).
-  // options: restoredId (dibuka dari riwayat), demo (hasil demo), demoQuiz (soal demo siap pakai).
+  // options: level (jenjang pembaca), restoredId (dibuka dari riwayat), demo (hasil demo),
+  // demoQuiz (soal demo siap pakai).
   function showResult(text, mode, sourceText, options) {
     const extra = options || {};
     renderResult(text, mode);
@@ -330,6 +338,7 @@
       detail: {
         sourceText: sourceText,
         mode: mode,
+        level: extra.level || defaultLevel,
         result: text,
         restoredId: extra.restoredId || null,
         demo: Boolean(extra.demo),
@@ -345,11 +354,13 @@
     document.dispatchEvent(new CustomEvent("bacamudah:processing")); // hentikan baca nyaring
     selectTab(tabs[0]);
     textInput.value = entry.source;
-    const modeInput = document.querySelector('input[name="mode"][value="' + entry.mode + '"]');
-    if (modeInput) modeInput.checked = true;
+    const level = entry.level || defaultLevel; // riwayat lama dibuat dengan aturan jenjang bawaan
+    checkRadio("mode", entry.mode);
+    checkRadio("level", level);
     hideInputMessage();
     resultError.hidden = true;
     showResult(entry.result, entry.mode, entry.source, {
+      level: level,
       restoredId: extra.demo ? null : entry.id,
       demo: extra.demo,
       demoQuiz: extra.demoQuiz,
@@ -387,6 +398,7 @@
   async function processText() {
     const text = textInput.value.trim();
     const mode = document.querySelector('input[name="mode"]:checked').value;
+    const level = document.querySelector('input[name="level"]:checked').value;
     if (!text || isProcessing || activeSource !== "teks") return;
 
     setProcessing(true);
@@ -400,9 +412,9 @@
       const data = await requestJson("/api/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text, mode: mode }),
+        body: JSON.stringify({ text: text, mode: mode, level: level }),
       });
-      showResult(data.result, mode, text);
+      showResult(data.result, mode, text, { level: level });
       resultStatus.textContent = "Hasil sudah siap.";
       resultHeading.focus({ preventScroll: true });
     } catch (error) {

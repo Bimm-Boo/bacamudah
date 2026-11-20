@@ -12,6 +12,7 @@
     analogi: "Analogi",
     istilah: "Istilah Sulit",
   };
+  const LEVEL_LABELS = { sd: "SD", smp: "SMP", sma: "SMA", mahasiswa: "Mahasiswa" };
 
   const list = document.getElementById("history-list");
   const emptyText = document.getElementById("history-empty");
@@ -25,7 +26,8 @@
   // ----- Simpan dan muat -----
   function isValidEntry(item) {
     return item && typeof item.id === "string" && typeof item.source === "string" &&
-      typeof item.result === "string" && item.mode in MODE_LABELS;
+      typeof item.result === "string" && item.mode in MODE_LABELS &&
+      (item.level === undefined || item.level in LEVEL_LABELS); // riwayat lama belum punya jenjang
   }
 
   function loadEntries() {
@@ -55,6 +57,7 @@
 
   function metaOf(entry) {
     const parts = [MODE_LABELS[entry.mode]];
+    if (entry.level) parts.push(LEVEL_LABELS[entry.level]);
     const date = new Date(entry.savedAt);
     if (!Number.isNaN(date.getTime())) {
       parts.push(date.toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }));
@@ -135,7 +138,7 @@
     document.getElementById("judul-riwayat").focus();
   }
 
-  // Hasil baru disimpan otomatis. Materi dan mode yang sama menggantikan simpanan lamanya.
+  // Hasil baru disimpan otomatis. Materi, mode, dan jenjang yang sama menggantikan simpanan lamanya.
   function handleResult(event) {
     const detail = event.detail;
     if (detail.demo) {
@@ -152,12 +155,13 @@
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       savedAt: new Date().toISOString(),
       mode: detail.mode,
+      level: detail.level,
       source: detail.sourceText,
       result: detail.result,
       quiz: null,
     };
     entries = [entry].concat(entries.filter(function (item) {
-      return !(item.source === entry.source && item.mode === entry.mode);
+      return !(item.source === entry.source && item.mode === entry.mode && item.level === entry.level);
     })).slice(0, MAX_ITEMS);
     currentId = entry.id;
     saveEntries();

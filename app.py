@@ -12,7 +12,7 @@ from werkzeug.exceptions import HTTPException
 
 from ai import AIError, define_term, generate_quiz, process_text
 from pdf_utils import PdfError, extract_text
-from prompts import MODES
+from prompts import DEFAULT_LEVEL, LEVELS, MODES
 from rate_limit import RateLimiter
 
 load_dotenv()  # baca GEMINI_API_KEY dan GEMINI_MODEL dari file .env
@@ -182,9 +182,12 @@ def api_process():
     mode = payload.get("mode")
     if mode not in MODES:
         return error_response("Mode tidak dikenal. Pilih salah satu mode yang tersedia.", 400)
+    level = payload.get("level") or DEFAULT_LEVEL  # halaman versi lama belum mengirim jenjang
+    if level not in LEVELS:
+        return error_response("Jenjang pembaca tidak dikenal. Pilih SD, SMP, SMA, atau Mahasiswa.", 400)
 
     try:
-        result = process_text(text, mode)
+        result = process_text(text, mode, level)
     except AIError as error:
         return error_response(error.message, error.status_code)
     return jsonify({"result": result})

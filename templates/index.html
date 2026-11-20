@@ -97,6 +97,18 @@
     </label>
   </div>
 
+  {# Jenjang pembaca mengatur panjang kalimat dan pilihan kata. SMP = aturan bawaan (DEFAULT_LEVEL di prompts.py). #}
+  <fieldset class="setting level-field">
+    <legend>Jenjang pembaca</legend>
+    <div class="choice-row level-row">
+      <label class="choice"><input type="radio" name="level" value="sd" aria-describedby="level-hint">SD</label>
+      <label class="choice"><input type="radio" name="level" value="smp" aria-describedby="level-hint" checked>SMP</label>
+      <label class="choice"><input type="radio" name="level" value="sma" aria-describedby="level-hint">SMA</label>
+      <label class="choice"><input type="radio" name="level" value="mahasiswa" aria-describedby="level-hint">Mahasiswa</label>
+    </div>
+    <p class="hint" id="level-hint">Makin rendah jenjangnya, makin pendek kalimat dan makin mudah kata-katanya.</p>
+  </fieldset>
+
   <button type="button" id="process-btn" class="btn btn-primary btn-large"
           aria-describedby="process-hint" disabled>Proses</button>
   {# Alasan tombol Proses belum bisa ditekan (diisi app.js). #}
@@ -163,6 +175,11 @@
       <label class="choice"><input type="radio" name="tts-rate" value="0.75">0,75x</label>
       <label class="choice"><input type="radio" name="tts-rate" value="1" checked>1x</label>
       <label class="choice"><input type="radio" name="tts-rate" value="1.25">1,25x</label>
+    </div>
+    {# Muncul hanya jika perangkat punya lebih dari satu suara bahasa Indonesia (diisi tts.js). #}
+    <div class="voice-field" id="tts-voice-field" hidden>
+      <label for="tts-voice">Suara</label>
+      <select id="tts-voice"></select>
     </div>
   </div>
   <p id="tts-note" class="hint" role="status" hidden></p>

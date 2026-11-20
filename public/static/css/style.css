@@ -1158,6 +1158,19 @@ input[type="file"]::file-selector-button {
   gap: 10px;
 }
 
+/* Jenjang pembaca: 2 x 2 seperti ubin mode, agar "Mahasiswa" tidak terpotong di kolom sempit */
+.level-field {
+  margin: 20px 0 4px;
+}
+
+.level-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.level-field .hint {
+  margin: 4px 0 0;
+}
+
 /* Pilihan font satu kolom: nama "OpenDyslexic" dalam hurufnya sendiri cukup lebar
    dan tidak boleh terpotong di panel yang sempit */
 .choice-row-wide {
@@ -1281,6 +1294,45 @@ input[type="file"]::file-selector-button {
   flex: 1 0 68px;
   min-height: 44px;
   border-radius: 999px;
+}
+
+/* Pilihan suara: seperti "Kecepatan", label di baris sendiri dan daftar selebar baris.
+   Nama suara yang panjang terpotong di kotak, tapi tampil utuh saat daftar dibuka. */
+.voice-field {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 700;
+}
+
+.voice-field label {
+  flex-basis: 100%;
+}
+
+.voice-field[hidden] {
+  display: none;
+}
+
+.voice-field select {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.voice-field select:focus-visible {
+  border-color: var(--primary);
+  outline-offset: 2px;
 }
 
 #tts-note {
@@ -1820,6 +1872,11 @@ html[data-ruler="on"] .reading-ruler {
 
 .quiz-result .btn {
   margin-top: 0.4em;
+}
+
+.quiz-result-actions {
+  justify-content: center;
+  margin: 0;
 }
 
 /* ===== Halaman Tentang dan halaman error ===== */

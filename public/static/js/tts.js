@@ -8,12 +8,15 @@
   const MAX_CHUNK_CHARS = 130;
   const RESTART_DELAY_MS = 80; // jeda singkat setelah cancel() sebelum mulai bicara lagi
   const PLAY_LABELS = { idle: "Dengarkan", playing: "Jeda", paused: "Lanjut" };
+  const VOICE_KEY = "bacamudah-suara"; // suara pilihan, disimpan di browser ini saja
 
   const controls = document.getElementById("tts-controls");
   const note = document.getElementById("tts-note");
   const playButton = document.getElementById("tts-play");
   const playLabel = document.getElementById("tts-play-label");
   const stopButton = document.getElementById("tts-stop");
+  const voiceField = document.getElementById("tts-voice-field");
+  const voiceSelect = document.getElementById("tts-voice");
   const resultOutput = document.getElementById("result-output");
 
   function showNote(text) {
@@ -79,13 +82,54 @@
   }
 
   // ----- Suara -----
-  // Cari suara bahasa Indonesia; utamakan suara bawaan perangkat (tidak butuh internet).
+  // Semua suara bahasa Indonesia; suara bawaan perangkat (tidak butuh internet) didahulukan.
   // Android menulis kode bahasa sebagai "id_ID", jadi garis bawah disamakan dulu.
+  function listIndonesianVoices() {
+    return synth.getVoices()
+      .filter(function (voice) { return voice.lang.replace("_", "-").toLowerCase().startsWith("id"); })
+      .sort(function (a, b) { return Number(b.localService) - Number(a.localService); });
+  }
+
+  // Suara yang dipilih di daftar; jika belum ada pilihan, suara Indonesia pertama.
   function findIndonesianVoice() {
-    const voices = synth.getVoices().filter(function (voice) {
-      return voice.lang.replace("_", "-").toLowerCase().startsWith("id");
-    });
-    return voices.find(function (voice) { return voice.localService; }) || voices[0] || null;
+    const voices = listIndonesianVoices();
+    return voices.find(function (voice) { return voice.voiceURI === voiceSelect.value; }) ||
+      voices[0] || null;
+  }
+
+  // Nama suara Android seperti "id-id-x-ide-local" sulit dibaca, jadi cukup diberi nomor.
+  function voiceLabel(voice, index) {
+    const name = /^[a-z]{2}[-_][a-z]{2}-x-/i.test(voice.name) ? "Suara " + (index + 1) : voice.name;
+    return voice.localService ? name : name + " (online)";
+  }
+
+  function loadSavedVoice() {
+    try {
+      return localStorage.getItem(VOICE_KEY) || "";
+    } catch (error) {
+      return ""; // localStorage diblokir
+    }
+  }
+
+  function saveVoice() {
+    try {
+      localStorage.setItem(VOICE_KEY, voiceSelect.value);
+    } catch (error) {
+      // Mode privat: pilihan tetap berlaku sampai halaman ditutup.
+    }
+  }
+
+  // Daftar suara baru tampil jika ada lebih dari satu suara bahasa Indonesia.
+  // Dipanggil lagi saat browser selesai memuat daftar suara (event voiceschanged).
+  function populateVoices() {
+    const voices = listIndonesianVoices();
+    // Pilihan tersimpan didahulukan: suara online kadang baru muncul setelah suara bawaan.
+    const wanted = loadSavedVoice() || voiceSelect.value;
+    voiceSelect.replaceChildren(...voices.map(function (voice, index) {
+      return new Option(voiceLabel(voice, index), voice.voiceURI);
+    }));
+    if (voices.some(function (voice) { return voice.voiceURI === wanted; })) voiceSelect.value = wanted;
+    voiceField.hidden = voices.length < 2;
   }
 
   function getRate() {
@@ -180,8 +224,8 @@
     speakCurrent();
   }
 
-  // Kecepatan baru langsung berlaku: kalimat yang sedang dibaca diulang dengan kecepatan itu.
-  function handleRateChange() {
+  // Kecepatan atau suara baru langsung berlaku: kalimat yang sedang dibaca diulang dengan pengaturan itu.
+  function restartCurrentSentence() {
     if (state !== "playing") return;
     token += 1;
     const myToken = token;
@@ -202,14 +246,16 @@
   playButton.addEventListener("click", handlePlayClick);
   stopButton.addEventListener("click", stop);
   controls.addEventListener("change", function (event) {
-    if (event.target.name === "tts-rate") handleRateChange();
+    if (event.target === voiceSelect) saveVoice();
+    if (event.target === voiceSelect || event.target.name === "tts-rate") restartCurrentSentence();
   });
+  synth.addEventListener("voiceschanged", populateVoices);
   document.addEventListener("bacamudah:processing", stop); // dikirim app.js saat proses dimulai
   document.addEventListener("bacamudah:result", handleNewResult); // dikirim app.js saat hasil baru tampil
   window.addEventListener("pagehide", function () { synth.cancel(); });
 
   synth.cancel(); // hentikan sisa bacaan dari kunjungan sebelumnya
-  synth.getVoices(); // memicu pemuatan daftar suara (di Chrome dimuat belakangan)
+  populateVoices(); // juga memicu pemuatan daftar suara (di Chrome dimuat belakangan)
   setState("idle");
   controls.hidden = false;
 })();

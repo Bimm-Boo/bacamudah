@@ -157,10 +157,10 @@ def clean_output(text):
     return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
 
 
-def process_text(text, mode):
-    """Olah materi sesuai mode, lalu kembalikan hasilnya sebagai teks."""
+def process_text(text, mode, level):
+    """Olah materi sesuai mode dan jenjang pembaca, lalu kembalikan hasilnya sebagai teks."""
     # Suhu rendah agar hasil tetap setia pada materi.
-    return clean_output(_generate(build_prompt(mode, text), temperature=0.3))
+    return clean_output(_generate(build_prompt(mode, text, level), temperature=0.3))
 
 
 # ----- Kamus kontekstual -----

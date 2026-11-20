@@ -16,7 +16,7 @@ MODE_PROMPTS = {
     "sederhana": """Tulis ulang materi di bawah ini agar lebih mudah dibaca.
 
 Aturan:
-- Setiap kalimat paling banyak sekitar 15 kata.
+- Setiap kalimat paling banyak sekitar {max_words} kata.
 - Pakai kata sehari-hari.
 - Istilah penting dari materi tetap disebut, lalu beri arti singkat dalam kurung.
 - Pertahankan semua informasi penting dan urutannya. Yang diubah hanya cara penyampaiannya.
@@ -34,7 +34,7 @@ Contoh format:
     "poin": """Ringkas materi di bawah ini menjadi 5 sampai 10 poin utama.
 
 Aturan:
-- Setiap poin hanya satu kalimat singkat, paling banyak sekitar 15 kata.
+- Setiap poin hanya satu kalimat singkat, paling banyak sekitar {max_words} kata.
 - Urutkan poin sesuai alur materi.
 - Awali setiap poin dengan tanda "- " dan tulis satu poin per baris.
 - Di setiap poin, tebalkan satu kata kunci terpenting dengan mengapitnya memakai dua bintang, misalnya **penguapan**.
@@ -47,7 +47,7 @@ Contoh format:
 - [poin kedua dengan **kata kunci**].
 - [poin ketiga dengan **kata kunci**].""",
 
-    "analogi": """Jelaskan konsep utama dari materi di bawah ini dengan perumpamaan (analogi) dari kehidupan sehari-hari pelajar Indonesia, misalnya di rumah, sekolah, pasar, atau dapur.
+    "analogi": """Jelaskan konsep utama dari materi di bawah ini dengan perumpamaan (analogi) dari kehidupan sehari-hari {reader} di Indonesia, misalnya di rumah, tempat belajar, pasar, atau dapur.
 
 Aturan:
 - Pilih 1 sampai 3 konsep terpenting dari materi.
@@ -65,7 +65,7 @@ Perumpamaannya: [analogi dalam 2-4 kalimat]""",
     "istilah": """Buat daftar istilah sulit yang muncul di materi di bawah ini, beserta artinya dalam bahasa sederhana.
 
 Aturan:
-- Pilih istilah yang benar-benar ada di materi dan mungkin sulit bagi pelajar, misalnya istilah teknis, kata serapan, atau singkatan.
+- Pilih istilah yang benar-benar ada di materi dan mungkin sulit bagi {reader}, misalnya istilah teknis, kata serapan, atau singkatan.
 - Paling banyak 15 istilah, diurutkan sesuai kemunculan di materi.
 - Tulis satu istilah per baris dengan format "- istilah: arti".
 - Arti ditulis dalam 1-2 kalimat pendek dan sesuai konteks materi. Jika materi sudah menjelaskan istilahnya, pakai penjelasan dari materi.
@@ -105,8 +105,36 @@ Aturan:
 
 Materi berisi baris "Istilah:" (kata yang dicari) dan "Kalimat:" (tempat kata itu muncul)."""
 
-# Daftar mode yang sah, dipakai untuk validasi di app.py.
+# Jenjang pembaca: mengatur panjang kalimat dan pilihan kata pada hasil keempat mode.
+# Nilainya mengisi {reader} dan {max_words} di MODE_PROMPTS.
+# Jenjang "smp" sama dengan aturan awal BacaMudah (kalimat paling banyak sekitar 15 kata).
+READING_LEVELS = {
+    "sd": {
+        "reader": "siswa SD kelas 4 sampai 6",
+        "max_words": 10,
+        "vocabulary": "Pakai kata yang dikenal anak SD. Ganti kata sulit dengan kata yang lebih mudah, asalkan maknanya tetap sama.",
+    },
+    "smp": {
+        "reader": "siswa SMP",
+        "max_words": 15,
+        "vocabulary": "Pakai kata sehari-hari yang dikenal siswa SMP.",
+    },
+    "sma": {
+        "reader": "siswa SMA",
+        "max_words": 18,
+        "vocabulary": "Pakai kata sehari-hari. Istilah pelajaran yang umum di SMA boleh tetap dipakai.",
+    },
+    "mahasiswa": {
+        "reader": "mahasiswa",
+        "max_words": 20,
+        "vocabulary": "Istilah ilmiah dari materi boleh tetap dipakai, asalkan kalimatnya tetap jelas.",
+    },
+}
+DEFAULT_LEVEL = "smp"
+
+# Daftar mode dan jenjang yang sah, dipakai untuk validasi di app.py.
 MODES = tuple(MODE_PROMPTS)
+LEVELS = tuple(READING_LEVELS)
 
 
 def _wrap_material(instruction, text):
@@ -116,9 +144,12 @@ def _wrap_material(instruction, text):
     return f"{instruction}\n\n{MATERIAL_START}\n{safe_text}\n{MATERIAL_END}"
 
 
-def build_prompt(mode, text):
-    """Prompt untuk mengolah materi sesuai mode yang dipilih."""
-    return _wrap_material(MODE_PROMPTS[mode], text)
+def build_prompt(mode, text, level=DEFAULT_LEVEL):
+    """Prompt untuk mengolah materi sesuai mode dan jenjang pembaca yang dipilih."""
+    guide = READING_LEVELS[level]
+    instruction = MODE_PROMPTS[mode].format(**guide)
+    reader_note = f"Pembaca hasil ini adalah {guide['reader']}. {guide['vocabulary']}"
+    return _wrap_material(f"{instruction}\n\n{reader_note}", text)
 
 
 def build_quiz_prompt(text):
