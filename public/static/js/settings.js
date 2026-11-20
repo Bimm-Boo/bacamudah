@@ -73,11 +73,14 @@
   }
 
   // ----- Bionic Reading -----
-  // Setiap kata dibungkus <span class="bionic-word"> dan huruf awalnya <span class="bionic-head">.
-  // Kata yang sudah dibungkus dilewati, jadi aman dipanggil berulang. Tebalnya diatur CSS
-  // lewat atribut data-bionic, jadi menyalakan/mematikan tidak perlu menggambar ulang teks.
+  // Saat aktif, setiap kata dibungkus <span class="bionic-word"> dan huruf awalnya
+  // <span class="bionic-head">. Saat mati, bungkus itu dilepas lagi, karena pembaca layar
+  // bisa mengucapkan kata yang dibungkus sebagai dua potongan (misalnya "Si klus").
+  // Kata yang sudah dibungkus dilewati, jadi aman dipanggil berulang.
   // Isi teks tidak berubah, sehingga baca nyaring, salin, dan blok kata tetap normal.
   const WORD_PATTERN = /\p{L}[\p{L}\p{M}]*/gu;
+  const bionicContainers = new Set(); // wadah teks yang diatur Bionic Reading
+  let bionicShown = settings.bionic;
 
   function bionicHeadLength(word) {
     if (word.length <= 3) return 1;
@@ -105,7 +108,7 @@
     node.replaceWith(fragment);
   }
 
-  function addBionicMarks(container) {
+  function markContainer(container) {
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
         const parent = node.parentElement;
@@ -116,6 +119,31 @@
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
     nodes.forEach(markTextNode);
+  }
+
+  // Kembalikan kata menjadi teks biasa, lalu satukan lagi potongan teksnya.
+  function unmarkContainer(container) {
+    container.querySelectorAll(".bionic-word").forEach(function (word) {
+      word.replaceWith(word.textContent);
+    });
+    container.normalize();
+  }
+
+  // Dipanggil setiap kali ada teks baru. Wadahnya diingat agar ikut berubah
+  // saat Bionic Reading dinyalakan atau dimatikan.
+  function addBionicMarks(container) {
+    bionicContainers.add(container);
+    if (settings.bionic) markContainer(container);
+  }
+
+  function refreshBionicMarks() {
+    if (settings.bionic === bionicShown) return;
+    bionicShown = settings.bionic;
+    bionicContainers.forEach(function (container) {
+      if (!container.isConnected) bionicContainers.delete(container); // sudah dihapus dari halaman
+      else if (settings.bionic) markContainer(container);
+      else unmarkContainer(container);
+    });
   }
 
   // ----- Penggaris baca -----
@@ -158,6 +186,7 @@
     applySettings();
     saveSettings();
     updateRulerListeners();
+    refreshBionicMarks();
     syncControls();
   }
 

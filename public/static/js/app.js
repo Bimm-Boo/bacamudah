@@ -22,6 +22,8 @@
   const resultErrorText = document.getElementById("result-error-text");
   const retryButton = document.getElementById("retry-btn");
   const resultOutput = document.getElementById("result-output");
+  const sourceCompare = document.getElementById("source-compare");
+  const sourceOutput = document.getElementById("source-output");
   const copyButton = document.getElementById("copy-btn");
   const downloadButton = document.getElementById("download-btn");
   const pdfButton = document.getElementById("pdf-btn");
@@ -298,11 +300,26 @@
     window.BacaMudahSettings.addBionicMarks(resultOutput);
   }
 
+  // Materi asli ditampilkan apa adanya (per paragraf) di bawah hasil, untuk dicek ulang.
+  function renderSource(text) {
+    sourceOutput.replaceChildren();
+    text.split(/\n\s*\n/).forEach(function (blockText) {
+      const clean = blockText.trim();
+      if (!clean) return;
+      const paragraph = document.createElement("p");
+      paragraph.textContent = clean;
+      sourceOutput.append(paragraph);
+    });
+    window.BacaMudahSettings.addBionicMarks(sourceOutput);
+    sourceCompare.hidden = false;
+  }
+
   // Tampilkan hasil dan kabari file lain (tts.js, quiz.js, history.js, demo.js).
   // options: restoredId (dibuka dari riwayat), demo (hasil demo), demoQuiz (soal demo siap pakai).
   function showResult(text, mode, sourceText, options) {
     const extra = options || {};
     renderResult(text, mode);
+    renderSource(sourceText);
     lastResult = text;
     lastMode = mode;
     lastSourceText = sourceText;

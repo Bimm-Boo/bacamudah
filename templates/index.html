@@ -32,7 +32,7 @@
 
   <p class="privacy-note" id="privacy-note">
     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>
-    <span><strong>Jaga privasi:</strong> jangan masukkan nama, nilai, atau data pribadi. Materi dikirim ke AI Gemini untuk diproses dan tidak disimpan di server BacaMudah. <a href="{{ url_for('tentang') }}#judul-privasi">Selengkapnya</a></span>
+    <span><strong>Jaga privasi:</strong> materi dikirim ke Gemini versi gratis milik Google. Google dapat memakainya untuk meningkatkan layanan, dan petugas Google dapat membacanya. Jadi, jangan masukkan nama, nilai, atau data pribadi. Server BacaMudah tidak menyimpan materimu. <a href="{{ url_for('tentang') }}#judul-privasi">Baca selengkapnya tentang privasi</a></span>
   </p>
 
   <div class="tabs" role="tablist" aria-label="Cara memasukkan materi">
@@ -182,6 +182,13 @@
   <div id="result-output" class="result-output reading-text">
     <p class="placeholder">Hasil akan muncul di sini setelah kamu menekan tombol Proses.</p>
   </div>
+
+  {# Materi asli dari hasil yang tampil, agar hasil AI mudah dicek terhadap sumbernya (diisi app.js). #}
+  <details id="source-compare" class="source-compare" hidden>
+    <summary>Bandingkan dengan materi asli</summary>
+    <p class="hint">AI bisa melewatkan detail atau mengubah makna. Cek ulang angka, nama, dan definisi penting.</p>
+    <div id="source-output" class="source-output reading-text" tabindex="0" role="region" aria-label="Materi asli"></div>
+  </details>
 
   {# Langkah berikutnya setelah membaca: simpan hasil atau uji pemahaman. #}
   <div class="toolbar result-actions">

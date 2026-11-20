@@ -1521,6 +1521,42 @@ html[data-ruler="on"] .reading-ruler {
   color: var(--muted);
 }
 
+/* Materi asli di bawah hasil: dibuka saat ingin mengecek hasil AI */
+.source-compare {
+  max-width: 68ch;
+  margin-top: 12px;
+}
+
+.source-compare summary {
+  padding: 10px 0;
+  color: var(--primary-strong);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.source-compare .hint {
+  margin-top: 0;
+}
+
+/* Tingginya dibatasi agar tombol di bawahnya tetap dekat; isinya bisa digulir */
+.source-output {
+  max-height: 20em;
+  overflow-y: auto;
+  padding: 12px 16px;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.source-output p {
+  margin: 0 0 0.8em;
+  white-space: pre-line; /* baris baru tetap seperti di kolom input */
+}
+
+.source-output p:last-child {
+  margin-bottom: 0;
+}
+
 .result-block {
   margin-bottom: 1.25em;
 }
