@@ -6,6 +6,8 @@
   <title>{% block title %}BacaMudah{% endblock %}</title>
   <meta name="description" content="BacaMudah membuat materi belajar lebih mudah dibaca, didengar, dan dipahami, terutama bagi penyandang disleksia.">
   <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+  {# Font utama diunduh sejak awal agar teks tidak bergeser saat font selesai dimuat. #}
+  <link rel="preload" href="{{ url_for('static', filename='fonts/Lexend-Variable.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {# Dimuat di head (tanpa defer) agar tema dan font tersimpan langsung dipakai, tanpa berkedip. #}
   <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
